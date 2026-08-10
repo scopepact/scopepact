@@ -1,0 +1,29 @@
+{
+  "description": "ScopePact v0 envelope transcript and Ed25519 signature interoperability vector",
+  "sender_seed_hex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+  "sender_public_key_hex": "66be7e332c7a453332bd9d0a7f7db055f5c5ef1a06ada66d98b39fb6810c473a",
+  "audience_public_key_hex": "0b513ad9b4924015ca0902ed079044d3ac5dbec2306f06948c10da8eb6e39f2d",
+  "schema_name": "scopepact.demo.task-offer.v0",
+  "transcript_hex": "53434f5045504143542d454e56454c4f50452d56300000000001000000100d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d01000000100e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0000000000000001000000100f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0000018bcfe568000000018bcfe6526000000020fdf72a088f18f7399e8c52bce448441501f759a595a86980e5d9a422a01e5d5500000020ed23d853125a3acff2782dddf84e018ebc85942ebf328ff1287202a4799642070000000000000007000a000000203f22303c48009eb3b8697d505c9a2fca54c4c2dfcf468994deee8d284ef614dc0000002007d87fc339447a2de28295005f82d3de6067a311587a2f5be0c9ca898b737c1000000000",
+  "frame": {
+    "envelope": {
+      "protocol_major": 0,
+      "protocol_minor": 1,
+      "session": "0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+      "interaction": "0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+      "sequence": 1,
+      "nonce": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+      "issued_at_ms": 1700000000000,
+      "expires_at_ms": 1700000060000,
+      "sender": "fdf72a088f18f7399e8c52bce448441501f759a595a86980e5d9a422a01e5d55",
+      "audience": "ed23d853125a3acff2782dddf84e018ebc85942ebf328ff1287202a479964207",
+      "policy_epoch": 7,
+      "message_kind": 10,
+      "payload_schema": "3f22303c48009eb3b8697d505c9a2fca54c4c2dfcf468994deee8d284ef614dc",
+      "payload_digest": "07d87fc339447a2de28295005f82d3de6067a311587a2f5be0c9ca898b737c10",
+      "critical_extensions": []
+    },
+    "payload_base64": "eyJyZWxhdGlvbnNoaXAiOiJjdXN0b21lciJ9",
+    "signature": "0e2684c32675ba750951b75c1b118b52bbcba87f434c632a42bd80776269c0d6a705a145ed751ff8e7b4b8b97987d46822a3fa4a90757dda7741ef8bb1f30d07"
+  }
+}

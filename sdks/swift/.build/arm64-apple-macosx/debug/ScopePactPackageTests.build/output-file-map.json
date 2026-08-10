@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePactPackageTests.build/master.swiftdeps"
+  },
+  "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePactPackageTests.derived/runner.swift": {
+    "dependencies": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePactPackageTests.build/runner.d",
+    "object": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePactPackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePactPackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePactPackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePactPackageTests.build/runner.dia"
+  }
+}

@@ -1,0 +1,3 @@
+module ScopePact {
+    header "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePact.build/include/ScopePact-Swift.h"
+}

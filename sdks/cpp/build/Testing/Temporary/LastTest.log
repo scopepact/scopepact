@@ -1,0 +1,19 @@
+Start testing: Aug 10 21:09 HKT
+----------------------------------------------------------
+1/1 Testing: scopepact_envelope_vector
+1/1 Test: scopepact_envelope_vector
+Command: "/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/scopepact_envelope_test"
+Directory: /Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build
+"scopepact_envelope_vector" start time: Aug 10 21:09 HKT
+Output:
+----------------------------------------------------------
+ScopePact C++ shared vector passed
+<end of output>
+Test time =   0.49 sec
+----------------------------------------------------------
+Test Passed.
+"scopepact_envelope_vector" end time: Aug 10 21:09 HKT
+"scopepact_envelope_vector" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Aug 10 21:09 HKT

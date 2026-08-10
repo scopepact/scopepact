@@ -1,0 +1,9 @@
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/scopepact_envelope.dir
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/scopepact_envelope_test.dir
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/test.dir
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/edit_cache.dir
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/rebuild_cache.dir
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/list_install_components.dir
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/install.dir
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/install/local.dir
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/cpp/build/CMakeFiles/install/strip.dir

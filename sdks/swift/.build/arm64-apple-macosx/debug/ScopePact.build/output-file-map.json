@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePact.build/master.swiftdeps"
+  },
+  "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/Sources/ScopePact/Envelope.swift": {
+    "dependencies": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePact.build/Envelope.d",
+    "object": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePact.build/Envelope.swift.o",
+    "swiftmodule": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePact.build/Envelope~partial.swiftmodule",
+    "swift-dependencies": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePact.build/Envelope.swiftdeps",
+    "diagnostics": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePact.build/Envelope.dia"
+  }
+}

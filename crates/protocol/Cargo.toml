@@ -1,0 +1,17 @@
+[package]
+name = "scopepact-protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+description = "Versioned ScopePact protobuf wire types"
+build = "build.rs"
+
+[dependencies]
+prost.workspace = true
+
+[build-dependencies]
+prost-build.workspace = true
+
+[lints]
+workspace = true

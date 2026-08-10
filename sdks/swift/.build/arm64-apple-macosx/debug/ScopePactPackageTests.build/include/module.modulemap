@@ -1,0 +1,3 @@
+module ScopePactPackageTests {
+    header "/Users/ci-wilson/yauyau-ai/scopepact/sdks/swift/.build/arm64-apple-macosx/debug/ScopePactPackageTests.build/include/ScopePactPackageTests-Swift.h"
+}

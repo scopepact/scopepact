@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "9ZjtUAN/apVV0brro8e/1aYteF4gmqkETXpfGvr64vHGzBv1Z09USiLVuwFKi+MrZvN7hG3Cl0tMia/62L/Wtg==",
+  "success": true,
+  "projectFilePath": "/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/ScopePact.Envelope.csproj",
+  "expectedPackageFiles": [
+    "/Users/ci-wilson/.nuget/packages/libsodium/1.0.19/libsodium.1.0.19.nupkg.sha512",
+    "/Users/ci-wilson/.nuget/packages/nsec.cryptography/24.4.0/nsec.cryptography.24.4.0.nupkg.sha512"
+  ],
+  "logs": []
+}

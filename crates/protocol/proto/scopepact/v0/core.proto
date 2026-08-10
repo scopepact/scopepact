@@ -1,0 +1,211 @@
+syntax = "proto3";
+
+package scopepact.v0;
+
+// All byte lengths are validated by the protocol kernel. IDs are 16 bytes,
+// key IDs and digests are 32 bytes, nonces are 16 bytes, and Ed25519
+// signatures are 64 bytes.
+
+enum MessageKind {
+  MESSAGE_KIND_UNSPECIFIED = 0;
+  MESSAGE_KIND_HELLO = 1;
+  MESSAGE_KIND_IDENTITY_CHALLENGE = 2;
+  MESSAGE_KIND_IDENTITY_PROOF = 3;
+  MESSAGE_KIND_SESSION_GRANT = 4;
+  MESSAGE_KIND_TASK_OFFER = 10;
+  MESSAGE_KIND_TASK_ACCEPT = 11;
+  MESSAGE_KIND_TASK_PROGRESS = 12;
+  MESSAGE_KIND_TASK_RESULT = 13;
+  MESSAGE_KIND_TASK_CANCEL = 14;
+  MESSAGE_KIND_EFFECT_MANDATE = 20;
+  MESSAGE_KIND_EFFECT_RECEIPT = 21;
+  MESSAGE_KIND_ERROR = 30;
+}
+
+enum InteractionState {
+  INTERACTION_STATE_UNSPECIFIED = 0;
+  INTERACTION_STATE_OFFERED = 1;
+  INTERACTION_STATE_ACCEPTED = 2;
+  INTERACTION_STATE_RUNNING = 3;
+  INTERACTION_STATE_COMPLETED = 4;
+  INTERACTION_STATE_REJECTED = 5;
+  INTERACTION_STATE_CANCELLED = 6;
+  INTERACTION_STATE_FAILED = 7;
+  INTERACTION_STATE_EXPIRED = 8;
+}
+
+message Envelope {
+  uint32 protocol_major = 1;
+  uint32 protocol_minor = 2;
+  bytes session_id = 3;
+  optional bytes interaction_id = 4;
+  uint64 sequence = 5;
+  bytes nonce = 6;
+  int64 issued_at_unix_ms = 7;
+  int64 expires_at_unix_ms = 8;
+  bytes sender_key_id = 9;
+  bytes audience_key_id = 10;
+  uint64 policy_epoch = 11;
+  MessageKind message_kind = 12;
+  bytes payload_schema_digest = 13;
+  bytes payload_digest = 14;
+  repeated string critical_extensions = 15;
+}
+
+message SignedEnvelope {
+  Envelope envelope = 1;
+  bytes signature = 2;
+}
+
+// The signature binds the digest of the exact payload bytes. Implementations
+// MUST verify the signature and digest before decoding payload.
+message Frame {
+  SignedEnvelope signed_envelope = 1;
+  bytes payload = 2;
+}
+
+message ProtocolVersion {
+  uint32 major = 1;
+  uint32 minor = 2;
+}
+
+message AgentHello {
+  // Complete versions prevent ambiguous per-major minor-version negotiation.
+  repeated ProtocolVersion supported_versions = 1;
+  repeated string codecs = 2;
+  repeated string extensions = 3;
+  uint64 max_frame_bytes = 4;
+  uint32 max_concurrent_interactions = 5;
+}
+
+message IdentityChallenge {
+  bytes challenge_id = 1;
+  bytes nonce = 2;
+  bytes transcript_digest = 3;
+  repeated string accepted_credential_types = 4;
+}
+
+message IdentityProof {
+  bytes challenge_id = 1;
+  bytes agent_key_id = 2;
+  bytes principal_credential = 3;
+  bytes workload_credential = 4;
+  // Transport profiles define this 32-byte channel-binding digest. The TLS
+  // profile derives it from an exporter scoped to the negotiation digest.
+  bytes transport_binding = 5;
+  bytes signature = 6;
+  string credential_type = 7;
+}
+
+message ResourceScope {
+  oneof scope {
+    string exact = 1;
+    string prefix = 2;
+  }
+}
+
+message CapabilityGrant {
+  bytes grant_id = 1;
+  bytes issuer = 2;
+  bytes subject = 3;
+  repeated string actions = 4;
+  ResourceScope resource = 5;
+  int64 not_before_unix_ms = 6;
+  int64 expires_at_unix_ms = 7;
+  uint64 max_calls = 8;
+  optional bytes interaction_id = 9;
+  optional string payment_currency = 10;
+  // Decimal ASCII integer in the currency's atomic unit. Never a float.
+  optional string max_spend_atomic = 11;
+  repeated bytes allowed_payees = 12;
+  uint32 remaining_delegation_depth = 13;
+  uint64 policy_epoch = 14;
+  optional bytes parent_grant_digest = 15;
+  // Actions for which a payment object is mandatory. This MUST be a subset
+  // of actions and cannot be removed by delegated grants retaining them.
+  repeated string payment_actions = 16;
+}
+
+message SessionGrant {
+  bytes session_id = 1;
+  bytes peer_key_id = 2;
+  repeated CapabilityGrant capabilities = 3;
+  uint32 max_concurrent_interactions = 4;
+  uint64 max_frame_bytes = 5;
+  int64 expires_at_unix_ms = 6;
+  uint64 policy_epoch = 7;
+}
+
+message ArtifactReference {
+  string media_type = 1;
+  string uri = 2;
+  bytes digest = 3;
+  uint64 size_bytes = 4;
+}
+
+message TaskOffer {
+  bytes interaction_id = 1;
+  string capability = 2;
+  bytes input_schema_digest = 3;
+  repeated ArtifactReference inputs = 4;
+  int64 deadline_unix_ms = 5;
+  optional string idempotency_key = 6;
+}
+
+message TaskAccept {
+  bytes interaction_id = 1;
+  bytes accepted_offer_digest = 2;
+  int64 accepted_at_unix_ms = 3;
+}
+
+message TaskProgress {
+  bytes interaction_id = 1;
+  uint64 revision = 2;
+  uint32 completed_permyriad = 3;
+  repeated ArtifactReference artifacts = 4;
+}
+
+message TaskResult {
+  bytes interaction_id = 1;
+  InteractionState state = 2;
+  repeated ArtifactReference outputs = 3;
+  bytes result_digest = 4;
+}
+
+message TaskCancel {
+  bytes interaction_id = 1;
+  bytes accepted_offer_digest = 2;
+  string reason_code = 3;
+}
+
+message PaymentAmount {
+  string currency = 1;
+  string atomic_units = 2;
+  bytes payee = 3;
+}
+
+message EffectMandate {
+  bytes effect_id = 1;
+  bytes interaction_id = 2;
+  bytes capability_grant_id = 3;
+  string action = 4;
+  string resource = 5;
+  bytes effect_digest = 6;
+  optional PaymentAmount payment = 7;
+  int64 expires_at_unix_ms = 8;
+}
+
+message EffectReceipt {
+  bytes effect_id = 1;
+  bytes mandate_digest = 2;
+  bytes result_digest = 3;
+  int64 committed_at_unix_ms = 4;
+  string status_code = 5;
+}
+
+message ProtocolError {
+  string code = 1;
+  bool retryable = 2;
+  optional uint64 retry_after_ms = 3;
+  optional bytes related_interaction_id = 4;
+}

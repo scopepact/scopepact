@@ -1,0 +1,12 @@
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/bin/Debug/net8.0/ScopePact.Envelope.deps.json
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/bin/Debug/net8.0/ScopePact.Envelope.dll
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/bin/Debug/net8.0/ScopePact.Envelope.pdb
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/ScopePact.Envelope.csproj.AssemblyReference.cache
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/ScopePact.Envelope.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/ScopePact.Envelope.AssemblyInfoInputs.cache
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/ScopePact.Envelope.AssemblyInfo.cs
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/ScopePact.Envelope.csproj.CoreCompileInputs.cache
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/ScopePact.Envelope.dll
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/refint/ScopePact.Envelope.dll
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/ScopePact.Envelope.pdb
+/Users/ci-wilson/yauyau-ai/scopepact/sdks/dotnet/src/ScopePact.Envelope/obj/Debug/net8.0/ref/ScopePact.Envelope.dll

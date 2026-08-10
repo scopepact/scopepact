@@ -1,0 +1,26 @@
+[package]
+name = "scopepact-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "MPL-2.0"
+description = "Security kernel for bounded authority between autonomous agents"
+
+[features]
+default = []
+jwt-federation = ["dep:hex", "dep:jsonwebtoken", "dep:serde"]
+
+[dependencies]
+ed25519-dalek.workspace = true
+hex = { workspace = true, optional = true }
+jsonwebtoken = { workspace = true, optional = true }
+scopepact-protocol.workspace = true
+serde = { workspace = true, optional = true }
+sha2.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

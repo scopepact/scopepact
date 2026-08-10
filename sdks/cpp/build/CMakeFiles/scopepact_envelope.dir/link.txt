@@ -1,0 +1,2 @@
+/usr/bin/ar qc libscopepact_envelope.a CMakeFiles/scopepact_envelope.dir/src/envelope.cpp.o
+/usr/bin/ranlib libscopepact_envelope.a

@@ -1,0 +1,35 @@
+{
+  "policy_version": 1,
+  "policy_epoch": 1,
+  "principal": "local-developer",
+  "agent": "coding-agent",
+  "valid_for_ms": 86400000,
+  "rules": [
+    {
+      "id": "project-file-writes",
+      "tool": "write_file",
+      "resource": {
+        "type": "argument",
+        "pointer": "/path",
+        "prefix": "/workspace/project/"
+      },
+      "max_calls": 20
+    },
+    {
+      "id": "bounded-vendor-payment",
+      "tool": "send_payment",
+      "resource": {
+        "type": "literal",
+        "value": "urn:payments:vendor"
+      },
+      "max_calls": 3,
+      "payment": {
+        "currency": "USD-CENTS",
+        "amount_pointer": "/amount_cents",
+        "payee_pointer": "/payee",
+        "max_spend_atomic": 5000,
+        "allowed_payees": ["vendor-a"]
+      }
+    }
+  ]
+}

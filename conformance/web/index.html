@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ScopePact Conformance Workbench</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">SP</span>
+        <div>
+          <strong>ScopePact</strong>
+          <span>Open protocol conformance</span>
+        </div>
+      </div>
+      <div class="runtime-status" id="runtime-status" role="status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>CONNECTING</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="command-band">
+        <div>
+          <p class="eyebrow">CONFORMANCE WORKBENCH</p>
+          <h1>Agent protocol test suite</h1>
+          <p class="runtime-pair">Python signer <span aria-hidden="true">→</span> JavaScript verifier</p>
+        </div>
+        <div class="actions">
+          <button class="button quiet" id="export-button" type="button" disabled>Export report</button>
+          <button class="button secondary" id="run-selected-button" type="button">Run selected</button>
+          <button class="button primary" id="run-suite-button" type="button">Run suite</button>
+        </div>
+      </section>
+
+      <section class="summary-band" aria-label="Conformance summary">
+        <div class="metric">
+          <span>Suite</span>
+          <strong id="suite-value">NOT RUN</strong>
+        </div>
+        <div class="metric">
+          <span>Selected test</span>
+          <strong id="test-value">PENDING</strong>
+        </div>
+        <div class="metric">
+          <span>Protocol decision</span>
+          <strong id="decision-value">--</strong>
+        </div>
+        <div class="metric">
+          <span>Invariant</span>
+          <strong id="invariant-value">--</strong>
+        </div>
+        <div class="metric">
+          <span>Verification time</span>
+          <strong id="elapsed-value">--</strong>
+        </div>
+      </section>
+
+      <div class="workbench">
+        <aside class="scenario-panel" aria-labelledby="scenario-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">COVERAGE</p>
+              <h2 id="scenario-title">Scenario catalog</h2>
+            </div>
+            <span class="count" id="scenario-count">0</span>
+          </div>
+          <label class="filter-label" for="category-filter">Category</label>
+          <select id="category-filter">
+            <option value="all">All categories</option>
+          </select>
+          <div class="scenario-list" id="scenario-list"></div>
+        </aside>
+
+        <section class="execution-panel" aria-labelledby="execution-title">
+          <div class="panel-heading execution-heading">
+            <div>
+              <p class="eyebrow" id="scenario-category">SCENARIO</p>
+              <h2 id="execution-title">Select a protocol case</h2>
+            </div>
+            <div class="badges">
+              <span class="badge" id="conformance-badge">NOT RUN</span>
+              <span class="badge decision" id="decision-badge">PENDING</span>
+            </div>
+          </div>
+
+          <div class="outcome-band" id="outcome-band">
+            <span class="outcome-mark" aria-hidden="true"></span>
+            <div>
+              <span>Observed outcome</span>
+              <strong id="outcome-title">No evidence yet</strong>
+              <p id="outcome-message">The selected case has not been executed.</p>
+            </div>
+          </div>
+
+          <div class="agent-route" aria-label="Cross-language verification route">
+            <div class="agent-node">
+              <span class="agent-avatar python">PY</span>
+              <div><strong>Agent A</strong><span>Signs the task frame</span></div>
+            </div>
+            <div class="route-line"><span id="route-pulse"></span></div>
+            <div class="agent-node right">
+              <span class="agent-avatar javascript">JS</span>
+              <div><strong>Agent B</strong><span>Applies protocol checks</span></div>
+            </div>
+          </div>
+
+          <div class="checks-heading">
+            <div>
+              <p class="eyebrow">EXECUTION</p>
+              <h2>Verification checks</h2>
+            </div>
+            <span id="check-count">0 checks</span>
+          </div>
+          <div class="check-list" id="check-list" aria-live="polite"></div>
+
+          <section class="decision-band" aria-labelledby="kernel-title">
+            <div>
+              <p class="eyebrow">KERNEL DECISION</p>
+              <h2 id="kernel-title">Awaiting verification</h2>
+            </div>
+            <p id="kernel-message">No protocol effect has been authorized or blocked.</p>
+            <span class="decision-code" id="decision-code">--</span>
+          </section>
+        </section>
+
+        <aside class="evidence-panel" aria-labelledby="evidence-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">EVIDENCE</p>
+              <h2 id="evidence-title">Protocol record</h2>
+            </div>
+            <button class="text-button" id="copy-button" type="button" disabled>Copy JSON</button>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Evidence view">
+            <button class="tab active" data-tab="overview" type="button" role="tab">Overview</button>
+            <button class="tab" data-tab="envelope" type="button" role="tab">Envelope</button>
+            <button class="tab" data-tab="payload" type="button" role="tab">Payload</button>
+            <button class="tab" data-tab="raw" type="button" role="tab">Raw</button>
+          </div>
+          <div class="evidence-content" id="evidence-content">
+            <p class="empty-state">Run a scenario to produce evidence.</p>
+          </div>
+        </aside>
+      </div>
+
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
