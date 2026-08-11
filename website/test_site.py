@@ -44,6 +44,8 @@ class WebsiteTests(unittest.TestCase):
             relative = unquote(parsed.path).lstrip("/")
             target = (PUBLIC / relative).resolve()
             self.assertTrue(target.is_relative_to(PUBLIC.resolve()), reference)
+            if not target.exists() and not target.suffix:
+                target = target.with_suffix(".html")
             self.assertTrue(target.is_file(), reference)
 
     def test_manifest_and_cloudflare_files_are_valid(self) -> None:
@@ -95,9 +97,16 @@ class WebsiteTests(unittest.TestCase):
         parser.feed(contents)
         self.assertIn('type="application/ld+json"', contents)
         self.assertIn('property="og:type" content="article"', contents)
+        self.assertIn(
+            '<link rel="canonical" href="https://scopepact.org/articles/ai-agents-need-bounded-authority"',
+            contents,
+        )
         self.assertIn("AI Agents Need Bounded Authority, Not More Trust", contents)
         self.assertIn("Current status: pre-release research implementation.", contents)
-        self.assertIn("/assets/scopepact-workbench.png", parser.references)
+        self.assertIn(
+            "/assets/scopepact-workbench-2026-08-11.png",
+            parser.references,
+        )
         self.assertIn("/article.css", parser.references)
         for reference in parser.references:
             parsed = urlsplit(reference)
@@ -110,7 +119,7 @@ class WebsiteTests(unittest.TestCase):
             self.assertTrue(target.is_file(), reference)
         sitemap = (PUBLIC / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn(
-            "https://scopepact.org/articles/ai-agents-need-bounded-authority.html",
+            "https://scopepact.org/articles/ai-agents-need-bounded-authority",
             sitemap,
         )
 

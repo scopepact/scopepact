@@ -171,4 +171,4 @@ Explore ScopePact at [scopepact.org](https://scopepact.org), browse the [source 
 
 **Suggested preview description:** ScopePact keeps authority outside the language model, enforces least privilege before an AI agent action becomes a real-world effect, and produces signed receipts others can verify.
 
-**Suggested header image:** Use `public/assets/scopepact-workbench.png`. In Medium, set the image alt text to: "ScopePact conformance workbench showing protocol scenarios, verification checks, and signed envelope evidence."
+**Suggested header image:** Use `public/assets/scopepact-workbench-2026-08-11.png`. In Medium, set the image alt text to: "ScopePact conformance workbench showing protocol scenarios, verification checks, and signed envelope evidence."

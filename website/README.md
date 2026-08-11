@@ -12,8 +12,9 @@ directories are ignored at the repository root. No build step is required for
 the checked-in site.
 
 The product image is a real local conformance-workbench capture. Regenerate it
-after material UI changes at a `2038x1212` viewport and preserve the same asset
-path so the hero and product view remain stable.
+after material UI changes at a `2038x1212` viewport and publish it under a new
+dated asset name. Update the page and article references together so CDN caches
+cannot retain an older product view at the current URL.
 
 The long-form introduction is published from
 `public/articles/ai-agents-need-bounded-authority.html`. Its semantic HTML,

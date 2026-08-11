@@ -121,7 +121,7 @@ nav a:hover { color: #fff; }
 .hero-image, .hero-scrim { position: absolute; inset: 0; }
 
 .hero-image {
-  background-image: url("assets/scopepact-workbench.png");
+  background-image: url("assets/scopepact-workbench-2026-08-11.png");
   background-position: center;
   background-size: cover;
   transform: scale(1.015);
