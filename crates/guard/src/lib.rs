@@ -4,6 +4,11 @@
 //! kernel's typed effect request. Every decision is returned as a signed,
 //! independently verifiable receipt.
 
+pub mod key_provider;
+pub mod mcp;
+pub mod policy_bundle;
+pub mod state;
+
 use std::collections::{BTreeSet, HashSet};
 use std::path::{Component, Path};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -23,6 +28,7 @@ use thiserror::Error;
 const RECEIPT_DOMAIN: &[u8] = b"SCOPEPACT-GUARD-RECEIPT-V0\0";
 const ACTION_PREFIX: &str = "mcp.tool.call:";
 const MAX_POLICY_RULES: usize = 1_024;
+const MAX_ALLOWED_PAYEES: usize = 1_024;
 const MAX_VALID_FOR_MS: i64 = 31 * 24 * 60 * 60 * 1_000;
 const MAX_SAFE_JSON_INTEGER: i64 = 9_007_199_254_740_991;
 
@@ -42,6 +48,10 @@ pub enum GuardError {
     MalformedReceipt(&'static str),
     #[error("system clock is before the Unix epoch")]
     InvalidSystemClock,
+    #[error("durable state rejected: {0}")]
+    DurableState(String),
+    #[error("key provider rejected: {0}")]
+    KeyProvider(String),
 }
 
 pub type Result<T> = std::result::Result<T, GuardError>;
@@ -120,6 +130,52 @@ pub struct SignedDecisionReceipt {
     pub signature: String,
 }
 
+/// The authority mutation that must be durable before an allowed effect is
+/// forwarded to the wrapped server.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EffectCommitment {
+    pub grant_id: GrantId,
+    pub request: ActionRequest,
+    pub authorized_at_ms: i64,
+}
+
+/// A signed decision and its optional durable authority mutation.
+#[derive(Clone, Debug)]
+pub struct GuardEvaluation {
+    pub receipt: SignedDecisionReceipt,
+    pub commitment: Option<EffectCommitment>,
+}
+
+/// Typed receipt-signing boundary used by local and external key providers.
+/// Implementations receive only the domain-separated receipt transcript.
+pub trait ReceiptSigner: Send + Sync {
+    /// Signs one complete receipt transcript.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the backing provider is unavailable or rejects
+    /// the operation.
+    fn sign(&self, transcript: &[u8]) -> Result<[u8; 64]>;
+
+    fn public_key(&self) -> [u8; 32];
+
+    fn key_id(&self) -> KeyId {
+        let key = VerifyingKey::from_bytes(&self.public_key())
+            .expect("receipt signer must return a valid Ed25519 public key");
+        key_id(&key)
+    }
+}
+
+impl ReceiptSigner for SigningKey {
+    fn sign(&self, transcript: &[u8]) -> Result<[u8; 64]> {
+        Ok(Signer::sign(self, transcript).to_bytes())
+    }
+
+    fn public_key(&self) -> [u8; 32] {
+        self.verifying_key().to_bytes()
+    }
+}
+
 impl SignedDecisionReceipt {
     /// Verifies the embedded key ID and Ed25519 signature.
     ///
@@ -173,12 +229,20 @@ struct ReceiptFields<'a> {
     issued_at_ms: i64,
 }
 
+enum RuleAttempt {
+    Complete(Box<GuardEvaluation>),
+    Rejected {
+        reason: String,
+        resource: Option<String>,
+    },
+}
+
 /// Stateful effect authorization for MCP traffic.
 pub struct GuardEngine {
     policy: GuardPolicy,
     kernel: AuthorityKernel,
     rules: Vec<InstalledRule>,
-    signing_key: SigningKey,
+    signer: Box<dyn ReceiptSigner>,
     agent_id: ActorId,
 }
 
@@ -189,7 +253,47 @@ impl GuardEngine {
     ///
     /// Returns an error when the policy cannot produce valid capability grants.
     pub fn new(policy: GuardPolicy, signing_key: SigningKey, now_ms: i64) -> Result<Self> {
+        Self::new_with_signer(policy, Box::new(signing_key), now_ms)
+    }
+
+    /// Validates a policy and starts a guard using a typed signing provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the policy cannot produce valid capability
+    /// grants or the provider exposes an invalid Ed25519 public key.
+    pub fn new_with_signer(
+        policy: GuardPolicy,
+        signer: Box<dyn ReceiptSigner>,
+        now_ms: i64,
+    ) -> Result<Self> {
+        Self::new_with_signer_and_revocations(policy, signer, now_ms, &HashSet::new())
+    }
+
+    /// Starts a guard while excluding rules explicitly revoked by a verified
+    /// signed policy bundle.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the policy, signer, or revocation set is invalid.
+    pub fn new_with_signer_and_revocations(
+        policy: GuardPolicy,
+        signer: Box<dyn ReceiptSigner>,
+        now_ms: i64,
+        revoked_rule_ids: &HashSet<String>,
+    ) -> Result<Self> {
         validate_policy(&policy)?;
+        if revoked_rule_ids
+            .iter()
+            .any(|revoked| !policy.rules.iter().any(|rule| rule.id == *revoked))
+        {
+            return Err(GuardError::InvalidPolicy(
+                "revoked rule is not present in policy".into(),
+            ));
+        }
+        VerifyingKey::from_bytes(&signer.public_key()).map_err(|_| {
+            GuardError::InvalidPolicy("receipt signer returned an invalid Ed25519 key".into())
+        })?;
         let issuer = actor_id("principal", &policy.principal);
         let agent_id = actor_id("agent", &policy.agent);
         let expires_at_ms = now_ms
@@ -199,6 +303,9 @@ impl GuardEngine {
         let mut installed_rules = Vec::with_capacity(policy.rules.len());
 
         for rule in &policy.rules {
+            if revoked_rule_ids.contains(&rule.id) {
+                continue;
+            }
             let grant_id = grant_id(policy.policy_epoch, &rule.id);
             let action = action_for_tool(&rule.tool);
             let payment = rule.payment.as_ref().map(|payment| PaymentLimit {
@@ -243,7 +350,7 @@ impl GuardEngine {
             policy,
             kernel,
             rules: installed_rules,
-            signing_key,
+            signer,
             agent_id,
         })
     }
@@ -262,6 +369,22 @@ impl GuardEngine {
         message: &Value,
         now_ms: i64,
     ) -> Result<Option<SignedDecisionReceipt>> {
+        self.evaluate_json_rpc_transactional(message, now_ms)
+            .map(|evaluation| evaluation.map(|evaluation| evaluation.receipt))
+    }
+
+    /// Evaluates one JSON-RPC message and returns the mutation that a durable
+    /// caller must commit before forwarding an allowed effect.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when a `tools/call` request is malformed or a receipt
+    /// cannot be serialized.
+    pub fn evaluate_json_rpc_transactional(
+        &mut self,
+        message: &Value,
+        now_ms: i64,
+    ) -> Result<Option<GuardEvaluation>> {
         if !message.is_object() {
             return Err(GuardError::InvalidRequest(
                 "JSON-RPC message must be an object; batches are not supported".into(),
@@ -277,13 +400,35 @@ impl GuardEngine {
             .map(Some)
     }
 
+    /// Replays a previously durable authority mutation during startup.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the commitment is not valid under the installed
+    /// policy or appears more than once in the durable journal.
+    pub fn restore_commitment(&mut self, commitment: &EffectCommitment) -> Result<()> {
+        match self.kernel.authorize_effect(
+            commitment.grant_id,
+            &commitment.request,
+            commitment.authorized_at_ms,
+        ) {
+            Ok(AuthorizationOutcome::Reserved) => Ok(()),
+            Ok(AuthorizationOutcome::Duplicate) => Err(GuardError::DurableState(
+                "journal contains a duplicate authority commitment".into(),
+            )),
+            Err(error) => Err(GuardError::DurableState(format!(
+                "journal commitment is invalid under the installed policy: {error}"
+            ))),
+        }
+    }
+
     fn evaluate_tool_call(
         &mut self,
         call: &ToolCall,
         effect_id: EffectId,
         effect_digest: Digest,
         now_ms: i64,
-    ) -> Result<SignedDecisionReceipt> {
+    ) -> Result<GuardEvaluation> {
         let matching_rules: Vec<_> = self
             .rules
             .iter()
@@ -291,7 +436,7 @@ impl GuardEngine {
             .cloned()
             .collect();
         if matching_rules.is_empty() {
-            return self.sign_receipt(
+            return self.sign_evaluation(
                 call,
                 ReceiptFields {
                     rule_id: None,
@@ -303,76 +448,25 @@ impl GuardEngine {
                     duplicate: false,
                     issued_at_ms: now_ms,
                 },
+                None,
             );
         }
 
         let mut last_reason = "resource is outside grant scope".to_owned();
         let mut observed_resource = None;
         for installed in matching_rules {
-            let resource = match resolve_resource(&installed.policy.resource, &call.arguments) {
-                Ok(resource) => resource,
-                Err(error) => {
-                    last_reason = error.to_string();
-                    continue;
+            match self.evaluate_rule(call, &installed, effect_id, effect_digest, now_ms)? {
+                RuleAttempt::Complete(evaluation) => return Ok(*evaluation),
+                RuleAttempt::Rejected { reason, resource } => {
+                    last_reason = reason;
+                    if resource.is_some() {
+                        observed_resource = resource;
+                    }
                 }
-            };
-            observed_resource = Some(resource.clone());
-            let payment = match resolve_payment(installed.policy.payment.as_ref(), &call.arguments)
-            {
-                Ok(payment) => payment,
-                Err(error) => {
-                    last_reason = error.to_string();
-                    continue;
-                }
-            };
-            let request = ActionRequest {
-                effect_id,
-                effect_digest,
-                actor: self.agent_id,
-                interaction: None,
-                action: action_for_tool(&call.tool),
-                resource: resource.clone(),
-                payment,
-            };
-            match self
-                .kernel
-                .authorize_effect(installed.grant_id, &request, now_ms)
-            {
-                Ok(AuthorizationOutcome::Reserved) => {
-                    return self.sign_receipt(
-                        call,
-                        ReceiptFields {
-                            rule_id: Some(&installed.policy.id),
-                            resource: Some(resource),
-                            effect_id,
-                            effect_digest,
-                            decision: GuardDecision::Allowed,
-                            reason: "effect reserved under capability grant".into(),
-                            duplicate: false,
-                            issued_at_ms: now_ms,
-                        },
-                    );
-                }
-                Ok(AuthorizationOutcome::Duplicate) => {
-                    return self.sign_receipt(
-                        call,
-                        ReceiptFields {
-                            rule_id: Some(&installed.policy.id),
-                            resource: Some(resource),
-                            effect_id,
-                            effect_digest,
-                            decision: GuardDecision::Blocked,
-                            reason: "duplicate effect suppressed".into(),
-                            duplicate: true,
-                            issued_at_ms: now_ms,
-                        },
-                    );
-                }
-                Err(error) => last_reason = error.to_string(),
             }
         }
 
-        self.sign_receipt(
+        self.sign_evaluation(
             call,
             ReceiptFields {
                 rule_id: None,
@@ -384,14 +478,96 @@ impl GuardEngine {
                 duplicate: false,
                 issued_at_ms: now_ms,
             },
+            None,
         )
     }
 
-    fn sign_receipt(
+    fn evaluate_rule(
+        &mut self,
+        call: &ToolCall,
+        installed: &InstalledRule,
+        effect_id: EffectId,
+        effect_digest: Digest,
+        now_ms: i64,
+    ) -> Result<RuleAttempt> {
+        let resource = match resolve_resource(&installed.policy.resource, &call.arguments) {
+            Ok(resource) => resource,
+            Err(error) => {
+                return Ok(RuleAttempt::Rejected {
+                    reason: error.to_string(),
+                    resource: None,
+                });
+            }
+        };
+        let payment = match resolve_payment(installed.policy.payment.as_ref(), &call.arguments) {
+            Ok(payment) => payment,
+            Err(error) => {
+                return Ok(RuleAttempt::Rejected {
+                    reason: error.to_string(),
+                    resource: Some(resource),
+                });
+            }
+        };
+        let request = ActionRequest {
+            effect_id,
+            effect_digest,
+            actor: self.agent_id,
+            interaction: None,
+            action: action_for_tool(&call.tool),
+            resource: resource.clone(),
+            payment,
+        };
+        let outcome = self
+            .kernel
+            .authorize_effect(installed.grant_id, &request, now_ms);
+        let (decision, reason, duplicate, commitment) = match outcome {
+            Ok(AuthorizationOutcome::Reserved) => (
+                GuardDecision::Allowed,
+                "effect reserved under capability grant".into(),
+                false,
+                Some(EffectCommitment {
+                    grant_id: installed.grant_id,
+                    request,
+                    authorized_at_ms: now_ms,
+                }),
+            ),
+            Ok(AuthorizationOutcome::Duplicate) => (
+                GuardDecision::Blocked,
+                "duplicate effect suppressed".into(),
+                true,
+                None,
+            ),
+            Err(error) => {
+                return Ok(RuleAttempt::Rejected {
+                    reason: error.to_string(),
+                    resource: Some(resource),
+                });
+            }
+        };
+        self.sign_evaluation(
+            call,
+            ReceiptFields {
+                rule_id: Some(&installed.policy.id),
+                resource: Some(resource),
+                effect_id,
+                effect_digest,
+                decision,
+                reason,
+                duplicate,
+                issued_at_ms: now_ms,
+            },
+            commitment,
+        )
+        .map(Box::new)
+        .map(RuleAttempt::Complete)
+    }
+
+    fn sign_evaluation(
         &self,
         call: &ToolCall,
         fields: ReceiptFields<'_>,
-    ) -> Result<SignedDecisionReceipt> {
+        commitment: Option<EffectCommitment>,
+    ) -> Result<GuardEvaluation> {
         let receipt = DecisionReceipt {
             receipt_version: 1,
             decision: fields.decision,
@@ -409,13 +585,16 @@ impl GuardEngine {
             duplicate: fields.duplicate,
         };
         let transcript = receipt_transcript(&receipt)?;
-        let signature = self.signing_key.sign(&transcript);
-        let verifying_key = self.signing_key.verifying_key();
-        Ok(SignedDecisionReceipt {
-            receipt,
-            signer_public_key: hex::encode(verifying_key.as_bytes()),
-            signer_key_id: hex::encode(key_id(&verifying_key).0),
-            signature: hex::encode(signature.to_bytes()),
+        let signature = self.signer.sign(&transcript)?;
+        let public_key = self.signer.public_key();
+        Ok(GuardEvaluation {
+            receipt: SignedDecisionReceipt {
+                receipt,
+                signer_public_key: hex::encode(public_key),
+                signer_key_id: hex::encode(self.signer.key_id().0),
+                signature: hex::encode(signature),
+            },
+            commitment,
         })
     }
 }
@@ -445,7 +624,13 @@ pub fn generate_signing_key() -> Result<SigningKey> {
     Ok(SigningKey::from_bytes(&seed))
 }
 
-fn validate_policy(policy: &GuardPolicy) -> Result<()> {
+/// Validates the complete local Guard policy contract.
+///
+/// # Errors
+///
+/// Returns an error for unsupported versions, invalid identities or limits,
+/// duplicate rules, malformed resource mappings, or invalid payment policy.
+pub fn validate_policy(policy: &GuardPolicy) -> Result<()> {
     if policy.policy_version != 1 {
         return Err(GuardError::InvalidPolicy("policy_version must be 1".into()));
     }
@@ -502,6 +687,7 @@ fn validate_policy(policy: &GuardPolicy) -> Result<()> {
             _ => {}
         }
         if let Some(payment) = &rule.payment {
+            let unique_payees: HashSet<_> = payment.allowed_payees.iter().collect();
             if payment.currency.is_empty()
                 || payment.currency.len() > 32
                 || !payment.currency.is_ascii()
@@ -509,13 +695,15 @@ fn validate_policy(policy: &GuardPolicy) -> Result<()> {
                 || !valid_pointer(&payment.payee_pointer)
                 || payment.max_spend_atomic == 0
                 || payment.allowed_payees.is_empty()
+                || payment.allowed_payees.len() > MAX_ALLOWED_PAYEES
+                || unique_payees.len() != payment.allowed_payees.len()
                 || payment
                     .allowed_payees
                     .iter()
                     .any(|payee| !valid_name(payee))
             {
                 return Err(GuardError::InvalidPolicy(format!(
-                    "rule {} has invalid payment limits",
+                    "rule {} has invalid payment limits or payee allowlist",
                     rule.id
                 )));
             }

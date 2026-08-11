@@ -1,0 +1,57 @@
+{
+  "evaluated_at_ms": 1000001,
+  "format": "scopepact-guard-receipt-vector-v1",
+  "policy": {
+    "agent": "vector-agent",
+    "policy_epoch": 7,
+    "policy_version": 1,
+    "principal": "vector-principal",
+    "rules": [
+      {
+        "id": "vector-file-write",
+        "max_calls": 1,
+        "resource": {
+          "pointer": "/path",
+          "prefix": "/workspace/project/",
+          "type": "argument"
+        },
+        "tool": "write_file"
+      }
+    ],
+    "valid_for_ms": 60000
+  },
+  "request": {
+    "id": "receipt-vector-1",
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "arguments": {
+        "content": "portable receipt",
+        "path": "/workspace/project/vector.txt"
+      },
+      "name": "write_file"
+    }
+  },
+  "signed_receipt": {
+    "receipt": {
+      "agent": "vector-agent",
+      "decision": "allowed",
+      "duplicate": false,
+      "effect_digest": "c9bd5c1675940e88691b0e96b4dd979acc25d55024b4409722bb6f4db3ba575d",
+      "effect_id": "f604c6c01387b7697354e6ccce4b17dc",
+      "issued_at_ms": 1000001,
+      "policy_epoch": 7,
+      "principal": "vector-principal",
+      "reason": "effect reserved under capability grant",
+      "receipt_version": 1,
+      "request_id": "receipt-vector-1",
+      "resource": "/workspace/project/vector.txt",
+      "rule_id": "vector-file-write",
+      "tool": "write_file"
+    },
+    "signature": "f851eb46da8f45703c8511ef42552d1b2605bf7e7f41283937a78f2a4d1f829042a1486facae6bfcb173143526e292d8748e9cf0bfe31c6117296c01e9f1eb01",
+    "signer_key_id": "b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092",
+    "signer_public_key": "197f6b23e16c8532c6abc838facd5ea789be0c76b2920334039bfa8b3d368d61"
+  },
+  "signing_seed_hex": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+}

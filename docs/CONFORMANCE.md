@@ -47,7 +47,9 @@ two-agent browser exchange:
 The Guard adapter tests additionally cover MCP tool mapping, resource and
 payment policy, duplicate suppression, JSON-RPC batch rejection, path
 traversal, receipt tampering, real stdio proxy behavior, and independent
-JavaScript receipt verification.
+JavaScript receipt verification. Rust, JavaScript, and Python also verify the
+deterministic `conformance/vectors/guard-receipt-v1.json` fixture and reject a
+mutated authenticated field.
 
 Run the complete repository verification with:
 
@@ -57,12 +59,15 @@ Run the complete repository verification with:
 
 ### Level 3: deployment profiles
 
-Remote transport interoperability, persistent replay state, operational key
-custody, multi-node revocation propagation, A2A binding, and remote MCP identity
-binding are not implemented yet. The local MCP Guard profile is an evaluation
-adapter and explicitly does not claim this deployment level. These areas
-require profile-specific integration suites before any production certification
-claim is appropriate.
+The local MCP Guard now has persistent replay and budget state, authenticated
+policy activation, encrypted local signer custody, and cross-signed signer
+rotation. It still lacks a complete deployment profile: remote transport
+interoperability, multi-node revocation propagation, A2A binding, remote MCP
+identity binding, operating-system sandbox tests, and symlink-safe filesystem
+enforcement remain outside the implemented boundary. The Guard therefore
+remains an evaluation adapter and does not claim this deployment level. These
+areas require profile-specific integration and operational suites before any
+production certification claim is appropriate.
 
 ## Adopter expectations
 

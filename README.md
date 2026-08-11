@@ -97,25 +97,54 @@ docs/          Protocol, threat model, profiles, ADRs, and governance
 
 ## Guard An MCP Server
 
-Build the binary and create a local receipt key:
+Build the binary, then create separate protected keys for decision receipts and
+policy issuance. The passphrase files must already exist with mode `0600`:
 
 ```sh
 cargo build --release -p scopepact-guard
-target/release/scopepact-guard keygen --out scopepact-key.json
+target/release/scopepact-guard keygen \
+  --out scopepact-key.json \
+  --passphrase-file scopepact-key.pass
+target/release/scopepact-guard keygen \
+  --out scopepact-policy-key.json \
+  --passphrase-file scopepact-policy-key.pass
+target/release/scopepact-guard policy trust-init \
+  --issuer example-operator \
+  --audience guard:production \
+  --key scopepact-policy-key.json \
+  --key-passphrase-file scopepact-policy-key.pass \
+  --out scopepact-policy-trust.json
+target/release/scopepact-guard policy sign \
+  --policy examples/mcp-guard-policy.json \
+  --issuer example-operator \
+  --audience guard:production \
+  --key scopepact-policy-key.json \
+  --key-passphrase-file scopepact-policy-key.pass \
+  --out scopepact-policy-bundle.json
 ```
 
 Then place the guard in front of any newline-framed MCP stdio server:
 
 ```sh
 target/release/scopepact-guard mcp \
-  --policy examples/mcp-guard-policy.json \
+  --policy-bundle scopepact-policy-bundle.json \
+  --policy-trust scopepact-policy-trust.json \
+  --policy-audience guard:production \
   --key scopepact-key.json \
+  --key-passphrase-file scopepact-key.pass \
+  --state scopepact-state.jsonl \
   --audit scopepact-audit.jsonl \
   -- your-mcp-server --its-arguments
 ```
 
 See [the Guard guide](docs/GUARD.md) for policy fields, client configuration,
-receipt verification, transcript encoding, and current limitations.
+receipt verification, transcript encoding, security boundaries, and current
+limitations. Its [resource-limit contract](docs/LIMITS.md) records hard
+rejection ceilings and the controls that remain outside Guard. The
+[migration guide](docs/MIGRATION.md) documents the current
+v3-only state contract and conservative upgrade procedure. The experimental
+[operations runbook](docs/OPERATIONS.md) covers backup, restore, rotation,
+compromise, rollback, and disaster-recovery exercises.
 
 ## Conformance Workbench
 
@@ -140,6 +169,10 @@ exchange; and the MCP guard proxy:
 ```sh
 ./verify-all.sh
 ```
+
+The optimized [Guard performance harness](docs/PERFORMANCE.md) emits
+machine-readable latency, throughput, durable recovery, and state-growth
+measurements with `./scripts/run-guard-benchmarks.sh`.
 
 Flutter, Swift, Go, C++, and C# packages consume the same checked-in transcript
 vector. Run their platform toolchains with:

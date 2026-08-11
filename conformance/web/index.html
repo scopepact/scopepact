@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>ScopePact Conformance Workbench</title>
+    <meta
+      name="description"
+      content="Run ScopePact cross-language wire conformance scenarios and inspect the evidence boundary for the pre-1.0 ScopePact Guard MCP authorization proxy."
+    />
+    <title>ScopePact Wire Conformance &amp; Guard Evidence</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -12,7 +16,7 @@
         <span class="brand-mark" aria-hidden="true">SP</span>
         <div>
           <strong>ScopePact</strong>
-          <span>Open protocol conformance</span>
+          <span>Wire conformance + Guard evidence</span>
         </div>
       </div>
       <div class="runtime-status" id="runtime-status" role="status">
@@ -25,7 +29,7 @@
       <section class="command-band">
         <div>
           <p class="eyebrow">CONFORMANCE WORKBENCH</p>
-          <h1>Agent protocol test suite</h1>
+          <h1>Wire conformance workbench</h1>
           <p class="runtime-pair">Python signer <span aria-hidden="true">→</span> JavaScript verifier</p>
         </div>
         <div class="actions">
@@ -56,6 +60,12 @@
           <span>Verification time</span>
           <strong id="elapsed-value">--</strong>
         </div>
+      </section>
+
+      <section class="scope-band" aria-label="Evidence boundary">
+        <strong>Evidence boundary</strong>
+        <span>These 15 cases validate cross-language wire behavior. Guard durability, recovery, and MCP proxy behavior run in the repository release gate.</span>
+        <a href="https://github.com/scopepact/scopepact/blob/main/ROADMAP.md">View release gates <span aria-hidden="true">&rarr;</span></a>
       </section>
 
       <div class="workbench">
@@ -145,6 +155,45 @@
           </div>
         </aside>
       </div>
+
+      <section class="readiness-band" aria-labelledby="readiness-title">
+        <div class="readiness-heading">
+          <div>
+            <p class="eyebrow">GUARD READINESS</p>
+            <h2 id="readiness-title">Implemented controls and open production gates</h2>
+          </div>
+          <span class="readiness-release" id="readiness-release">PRE-1.0 HARDENING</span>
+        </div>
+        <div class="readiness-grid">
+          <article class="readiness-item">
+            <span class="readiness-status implemented">LOCAL TESTED</span>
+            <h3>Durable enforcement</h3>
+            <p><strong id="readiness-state">STATE V3</strong> commits effect IDs, budgets, policy state, and receipt-chain position before forwarding an allowed call.</p>
+          </article>
+          <article class="readiness-item">
+            <span class="readiness-status implemented">LOCAL TESTED</span>
+            <h3>Authenticated operation</h3>
+            <p>Signed policy bundles, encrypted receipt keys, cross-signed rotation, and fail-closed policy cache validation.</p>
+          </article>
+          <article class="readiness-item">
+            <span class="readiness-status implemented">LOCAL TESTED</span>
+            <h3>MCP boundary</h3>
+            <p><strong id="readiness-mcp">MCP 2025-06-18</strong> lifecycle enforcement, bounded traffic, duplicate suppression, and hostile child-output termination.</p>
+          </article>
+          <article class="readiness-item open">
+            <span class="readiness-status">OPEN GATES</span>
+            <h3>Production claim</h3>
+            <p>State migration, filesystem canonicalization, platform CI and release evidence, external review, and a production-like pilot remain open.</p>
+          </article>
+        </div>
+        <nav class="readiness-links" aria-label="Guard evidence links">
+          <a href="https://github.com/scopepact/scopepact/blob/main/docs/GUARD.md">Guard guide</a>
+          <a href="https://github.com/scopepact/scopepact/blob/main/docs/LIMITS.md">Resource limits</a>
+          <a href="https://github.com/scopepact/scopepact/blob/main/docs/OPERATIONS.md">Operations</a>
+          <a href="https://github.com/scopepact/scopepact/blob/main/docs/SANDBOX.md">Sandbox boundary</a>
+        </nav>
+        <p class="readiness-note">Repository evidence is local verification, not production certification. ScopePact Guard is an evaluation aid and does not sandbox a wrapped server.</p>
+      </section>
 
     </main>
 

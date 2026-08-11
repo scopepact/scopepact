@@ -6,12 +6,18 @@ guard_tmp=$(mktemp -d "${TMPDIR:-/tmp}/scopepact-guard.XXXXXX")
 trap 'rm -rf "$guard_tmp"' EXIT HUP INT TERM
 
 cd "$project_root"
-cargo run --quiet -p scopepact-guard -- keygen --out "$guard_tmp/key.json" >/dev/null
+umask 077
+printf '%s\n' 'scopepact-local-demo-passphrase' > "$guard_tmp/passphrase"
+cargo run --quiet -p scopepact-guard -- keygen \
+    --out "$guard_tmp/key.json" \
+    --passphrase-file "$guard_tmp/passphrase" \
+    >/dev/null
 
 echo "Allowed in-scope call:"
 cargo run --quiet -p scopepact-guard -- check \
     --policy examples/mcp-guard-policy.json \
     --key "$guard_tmp/key.json" \
+    --key-passphrase-file "$guard_tmp/passphrase" \
     < examples/mcp-allowed.json \
     > "$guard_tmp/allowed-receipt.json"
 sed -n '1,120p' "$guard_tmp/allowed-receipt.json"
@@ -26,6 +32,7 @@ echo "Blocked out-of-scope call:"
 if cargo run --quiet -p scopepact-guard -- check \
     --policy examples/mcp-guard-policy.json \
     --key "$guard_tmp/key.json" \
+    --key-passphrase-file "$guard_tmp/passphrase" \
     < examples/mcp-blocked.json \
     > "$guard_tmp/blocked-receipt.json"; then
     echo "Out-of-scope call was accepted." >&2

@@ -48,7 +48,15 @@ Open `http://127.0.0.1:8787` to run one scenario or the complete suite, inspect
 envelopes and payloads, and export a JSON report. A rejected malicious frame is
 a passing conformance result when rejection is the expected decision.
 
+The workbench also shows a Guard readiness inventory sourced from the local
+health endpoint. It separates implemented controls from the release gates that
+still block a production claim and links to the checked-in limits, operations,
+sandbox, and roadmap evidence.
+
 The browser suite demonstrates the cross-language wire checks. The Rust tests
 remain authoritative for authenticated handshake, delegation attenuation,
-effect authorization, revocation, interaction state, and optional JWT
-federation behavior. See [the conformance guide](../docs/CONFORMANCE.md).
+effect authorization, revocation, interaction state, Guard durability and
+recovery, MCP proxy behavior, and optional JWT federation behavior. The
+readiness inventory is not an additional browser conformance suite or a
+production certification. See [the conformance guide](../docs/CONFORMANCE.md)
+and [production roadmap](../ROADMAP.md).

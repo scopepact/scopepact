@@ -83,8 +83,8 @@ claim of perfect security.
 - reject absolute resource paths containing parent traversal;
 - enforce typed payment amount, currency, cumulative spend, and payee;
 - sign decision receipts with an independently verifiable transcript;
-- treat the downstream server, filesystem canonicalization, audit durability,
-  and persistent replay state as separate deployment trust boundaries.
+- treat the downstream server, filesystem canonicalization, operating-system
+  sandbox, and external rollback anchor as separate deployment trust boundaries.
 
 ## Federation credential mitigations
 

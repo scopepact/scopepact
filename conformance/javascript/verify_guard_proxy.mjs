@@ -1,88 +1,24 @@
-import { createHash, createPublicKey, verify } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { verifyGuardReceipt } from "./guard_receipt.mjs";
 
-const [outputPath, auditPath] = process.argv.slice(2);
-if (!outputPath || !auditPath) {
-  throw new Error("usage: verify_guard_proxy.mjs OUTPUT AUDIT");
+const [outputPath, auditPath, eventsPath] = process.argv.slice(2);
+if (!outputPath || !auditPath || !eventsPath) {
+  throw new Error("usage: verify_guard_proxy.mjs OUTPUT AUDIT EVENTS");
 }
 
 function lines(value) {
   return value.trim().split("\n").filter(Boolean).map((line) => JSON.parse(line));
 }
 
-function u16(value) {
-  const output = Buffer.alloc(2);
-  output.writeUInt16BE(value);
-  return output;
-}
-
-function u32(value) {
-  const output = Buffer.alloc(4);
-  output.writeUInt32BE(value);
-  return output;
-}
-
-function u64(value) {
-  const output = Buffer.alloc(8);
-  output.writeBigUInt64BE(BigInt(value));
-  return output;
-}
-
-function i64(value) {
-  const output = Buffer.alloc(8);
-  output.writeBigInt64BE(BigInt(value));
-  return output;
-}
-
-function field(value) {
-  const bytes = Buffer.from(value, "utf8");
-  return Buffer.concat([u32(bytes.length), bytes]);
-}
-
-function optionalField(value) {
-  return value === null
-    ? Buffer.from([0])
-    : Buffer.concat([Buffer.from([1]), field(value)]);
-}
-
-function receiptTranscript(receipt) {
-  return Buffer.concat([
-    Buffer.from("SCOPEPACT-GUARD-RECEIPT-V0\0", "utf8"),
-    u16(receipt.receipt_version),
-    Buffer.from([receipt.decision === "allowed" ? 1 : 2]),
-    field(receipt.reason),
-    u64(receipt.policy_epoch),
-    field(receipt.principal),
-    field(receipt.agent),
-    field(JSON.stringify(receipt.request_id)),
-    field(receipt.tool),
-    optionalField(receipt.resource),
-    optionalField(receipt.rule_id),
-    Buffer.from(receipt.effect_id, "hex"),
-    Buffer.from(receipt.effect_digest, "hex"),
-    i64(receipt.issued_at_ms),
-    Buffer.from([receipt.duplicate ? 1 : 0]),
-  ]);
-}
-
-function verifyReceipt(signed) {
-  const rawKey = Buffer.from(signed.signer_public_key, "hex");
-  const keyId = createHash("sha256").update(rawKey).digest("hex");
-  if (keyId !== signed.signer_key_id) throw new Error("receipt key ID mismatch");
-  const spkiPrefix = Buffer.from("302a300506032b6570032100", "hex");
-  const key = createPublicKey({
-    key: Buffer.concat([spkiPrefix, rawKey]),
-    format: "der",
-    type: "spki",
-  });
-  if (!verify(null, receiptTranscript(signed.receipt), key, Buffer.from(signed.signature, "hex"))) {
-    throw new Error(`invalid receipt signature for request ${signed.receipt.request_id}`);
-  }
-}
-
 const output = lines(await readFile(outputPath, "utf8"));
 const audit = lines(await readFile(auditPath, "utf8"));
+const eventsSource = await readFile(eventsPath, "utf8");
+const events = lines(eventsSource);
 const byId = new Map(output.map((message) => [message.id, message]));
+
+if (output.some((message) => message.method === "sampling/createMessage")) {
+  throw new Error("server-initiated sampling request crossed the Guard boundary");
+}
 
 if (byId.get(0)?.result?.serverInfo?.name !== "scopepact-mock") {
   throw new Error("initialize was not forwarded to the MCP server");
@@ -94,12 +30,38 @@ if (byId.get(2)?.error?.code !== -32042) {
   throw new Error("blocked tool call did not return the ScopePact JSON-RPC error");
 }
 if (audit.length !== 2) throw new Error(`expected 2 receipts, received ${audit.length}`);
-for (const receipt of audit) verifyReceipt(receipt);
+for (const receipt of audit) verifyGuardReceipt(receipt);
 if (audit.find((entry) => entry.receipt.request_id === 1)?.receipt.decision !== "allowed") {
   throw new Error("allowed receipt is missing");
 }
 if (audit.find((entry) => entry.receipt.request_id === 2)?.receipt.decision !== "blocked") {
   throw new Error("blocked receipt is missing");
+}
+
+if (events.some((event) => event.format !== "scopepact-guard-event-v1")) {
+  throw new Error("operational event format is missing or unsupported");
+}
+if (!events.some((event) => event.event === "proxy_started")) {
+  throw new Error("proxy start event is missing");
+}
+if (!events.some((event) => event.event === "proxy_stopped")) {
+  throw new Error("proxy stop event is missing");
+}
+const decisions = events.filter((event) => event.event === "decision_committed");
+if (decisions.length !== 2 || !decisions.some((event) => event.outcome === "allowed") ||
+    !decisions.some((event) => event.outcome === "blocked")) {
+  throw new Error("redacted decision events do not match proxy decisions");
+}
+for (const forbidden of [
+  "request_id", "tool", "resource", "arguments", "reason", "signature",
+  "public_key", "/workspace/project/README.md", "/etc/hosts",
+]) {
+  if (eventsSource.includes(forbidden)) {
+    throw new Error(`operational events leaked forbidden value: ${forbidden}`);
+  }
+}
+if (eventsSource.includes('"content"')) {
+  throw new Error("operational events leaked tool arguments");
 }
 
 process.stdout.write("ScopePact MCP proxy and JavaScript receipt verification passed.\n");

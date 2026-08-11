@@ -1,0 +1,87 @@
+name: Core verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Rust 1.85 minimum
+            os: ubuntu-latest
+            rust: 1.85.0
+            mode: msrv
+          - name: Linux stable
+            os: ubuntu-latest
+            rust: stable
+            mode: full
+          - name: macOS stable
+            os: macos-latest
+            rust: stable
+            mode: full
+          - name: Windows stable
+            os: windows-latest
+            rust: stable
+            mode: cargo
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        shell: bash
+        run: |
+          rustup toolchain install '${{ matrix.rust }}' --profile minimal
+          rustup default '${{ matrix.rust }}'
+          if [ '${{ matrix.mode }}' != msrv ]; then
+            rustup component add rustfmt clippy
+          fi
+
+      - name: Install Python for cross-language checks
+        if: matrix.mode == 'full'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: conformance/python/requirements.txt
+
+      - name: Install Python dependencies
+        if: matrix.mode == 'full'
+        run: python3 -m pip install -r conformance/python/requirements.txt
+
+      - name: Verify minimum supported Rust
+        if: matrix.mode == 'msrv'
+        run: |
+          cargo check --workspace --all-targets --all-features
+          cargo test --workspace --lib --tests --all-features
+
+      - name: Run complete repository gate
+        if: matrix.mode == 'full'
+        run: ./verify-all.sh
+
+      - name: Verify Rust on Windows
+        if: matrix.mode == 'cargo'
+        shell: bash
+        run: |
+          cargo fmt --all -- --check
+          cargo check --workspace --all-targets --all-features
+          cargo test --workspace --all-targets --all-features
+          cargo clippy --workspace --all-targets --all-features -- -D warnings
+          cargo test --workspace --doc --all-features

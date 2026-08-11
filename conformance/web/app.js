@@ -27,6 +27,9 @@ const ui = {
   kernelTitle: document.querySelector("#kernel-title"),
   kernelMessage: document.querySelector("#kernel-message"),
   decisionCode: document.querySelector("#decision-code"),
+  readinessRelease: document.querySelector("#readiness-release"),
+  readinessState: document.querySelector("#readiness-state"),
+  readinessMcp: document.querySelector("#readiness-mcp"),
 };
 
 const state = {
@@ -346,6 +349,7 @@ async function runSuite() {
 function reportPayload() {
   return {
     protocol: "ScopePact v0.1",
+    scope: "cross-language wire conformance; not Guard production certification",
     generated_at: new Date().toISOString(),
     suite: state.suite
       ? { status: state.suite.status, passed: state.suite.passed, total: state.suite.total }
@@ -394,6 +398,9 @@ async function start() {
     const ready = health.status === "ready";
     ui.runtime.className = `runtime-status ${ready ? "ready" : "error"}`;
     ui.runtime.lastElementChild.textContent = ready ? "LOCAL READY" : "RUNTIME MISSING";
+    ui.readinessRelease.textContent = health.guard_evidence.release_status.toUpperCase();
+    ui.readinessState.textContent = `STATE V${health.guard_evidence.state_version}`;
+    ui.readinessMcp.textContent = `MCP ${health.guard_evidence.mcp_version}`;
     state.scenarios = catalog.scenarios;
     const categories = [...new Set(state.scenarios.map((scenario) => scenario.category))].sort();
     ui.categoryFilter.append(

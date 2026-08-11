@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: gomod
+    directory: /sdks/go
+    schedule:
+      interval: weekly
+  - package-ecosystem: pub
+    directory: /sdks/flutter
+    schedule:
+      interval: weekly
+  - package-ecosystem: nuget
+    directory: /sdks/dotnet
+    schedule:
+      interval: weekly

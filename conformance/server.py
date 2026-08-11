@@ -498,11 +498,17 @@ def health() -> dict[str, Any]:
     return {
         "status": "ready" if shutil.which("node") else "missing-runtime",
         "protocol": "ScopePact v0.1",
+        "scope": "cross-language-wire-v0",
         "host": "127.0.0.1",
         "credential": credential_profile(),
         "python": sys.version.split()[0],
         "node": shutil.which("node") is not None,
         "scenario_count": len(SCENARIOS),
+        "guard_evidence": {
+            "release_status": "pre-1.0 hardening",
+            "state_version": 3,
+            "mcp_version": "2025-06-18",
+        },
     }
 
 

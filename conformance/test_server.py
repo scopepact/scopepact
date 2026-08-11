@@ -26,6 +26,10 @@ class ScopePactInspectorTests(unittest.TestCase):
         self.assertEqual(payload["credential"]["federation"], "Not presented")
         self.assertTrue(payload["node"])
         self.assertEqual(payload["scenario_count"], 15)
+        self.assertEqual(payload["scope"], "cross-language-wire-v0")
+        self.assertEqual(payload["guard_evidence"]["release_status"], "pre-1.0 hardening")
+        self.assertEqual(payload["guard_evidence"]["state_version"], 3)
+        self.assertEqual(payload["guard_evidence"]["mcp_version"], "2025-06-18")
 
     def test_catalog_exposes_adoption_facing_protocol_rules(self) -> None:
         catalog = server.scenario_catalog()

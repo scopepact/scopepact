@@ -249,3 +249,23 @@ fn rejects_fractional_and_unsafe_numeric_request_ids() {
         assert!(guard.evaluate_json_rpc(&request, NOW_MS).is_err());
     }
 }
+
+#[test]
+fn rejects_unbounded_or_duplicate_payment_allowlists() {
+    let key = SigningKey::from_bytes(&[42; 32]);
+    let mut oversized = policy();
+    oversized.rules[1].payment.as_mut().unwrap().allowed_payees =
+        (0..=1_024).map(|index| format!("vendor-{index}")).collect();
+    let error = GuardEngine::new(oversized, key.clone(), NOW_MS)
+        .err()
+        .expect("oversized allowlist should fail");
+    assert!(error.to_string().contains("payee allowlist"));
+
+    let mut duplicate = policy();
+    duplicate.rules[1].payment.as_mut().unwrap().allowed_payees =
+        vec!["vendor-a".into(), "vendor-a".into()];
+    let error = GuardEngine::new(duplicate, key, NOW_MS)
+        .err()
+        .expect("duplicate allowlist entry should fail");
+    assert!(error.to_string().contains("payee allowlist"));
+}

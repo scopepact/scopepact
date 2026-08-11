@@ -31,3 +31,10 @@ The implemented invariants and known deployment gaps are documented in
 [the threat model](docs/THREAT_MODEL.md),
 [security invariants](docs/SECURITY_INVARIANTS.md), and the relevant profile.
 The MCP guard's specific limitations are listed in [docs/GUARD.md](docs/GUARD.md).
+Its state compatibility and conservative upgrade procedure are documented in
+[docs/MIGRATION.md](docs/MIGRATION.md).
+The single-host incident and recovery procedures are in
+[docs/OPERATIONS.md](docs/OPERATIONS.md).
+Current version/security windows and the explicit absence of a sandbox profile
+are in [docs/SUPPORT.md](docs/SUPPORT.md) and
+[docs/SANDBOX.md](docs/SANDBOX.md).

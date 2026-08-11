@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scopepact.org/schemas/guard-receipt-v1.schema.json",
+  "title": "ScopePact Guard Signed Decision Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["receipt", "signer_public_key", "signer_key_id", "signature"],
+  "properties": {
+    "receipt": {
+      "$ref": "#/$defs/receipt"
+    },
+    "signer_public_key": {
+      "$ref": "#/$defs/hex32"
+    },
+    "signer_key_id": {
+      "$ref": "#/$defs/hex32"
+    },
+    "signature": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$"
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000-\\u001F\\u007F-\\u009F]+$"
+    },
+    "hex16": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "hex32": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "requestId": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      ]
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "receipt_version",
+        "decision",
+        "reason",
+        "policy_epoch",
+        "principal",
+        "agent",
+        "request_id",
+        "tool",
+        "resource",
+        "rule_id",
+        "effect_id",
+        "effect_digest",
+        "issued_at_ms",
+        "duplicate"
+      ],
+      "properties": {
+        "receipt_version": {
+          "const": 1
+        },
+        "decision": {
+          "enum": ["allowed", "blocked"]
+        },
+        "reason": {
+          "$ref": "#/$defs/text"
+        },
+        "policy_epoch": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18446744073709551615
+        },
+        "principal": {
+          "$ref": "#/$defs/text"
+        },
+        "agent": {
+          "$ref": "#/$defs/text"
+        },
+        "request_id": {
+          "$ref": "#/$defs/requestId"
+        },
+        "tool": {
+          "$ref": "#/$defs/text"
+        },
+        "resource": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1048576
+            }
+          ]
+        },
+        "rule_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/text"
+            }
+          ]
+        },
+        "effect_id": {
+          "$ref": "#/$defs/hex16"
+        },
+        "effect_digest": {
+          "$ref": "#/$defs/hex32"
+        },
+        "issued_at_ms": {
+          "type": "integer"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
