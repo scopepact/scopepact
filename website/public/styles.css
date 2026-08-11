@@ -480,6 +480,20 @@ h2 { margin: 0; font-size: 40px; line-height: 1.12; font-weight: 790; }
 .next-links a span { color: var(--amber); }
 .next-links a:hover { color: #fff; }
 
+.field-note {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(300px, 0.8fr) auto;
+  align-items: center;
+  gap: 70px;
+  padding: 68px max(24px, calc((100vw - 1380px) / 2));
+  border-top: 1px solid var(--line);
+  background: #edf1eb;
+  color: var(--paper-ink);
+}
+.field-note .eyebrow { color: #7d6414; }
+.field-note h2 { max-width: 650px; font-size: 30px; }
+.field-note > p { margin: 0; color: #4d5b51; font-size: 13px; line-height: 1.68; }
+
 .open-source { display: grid; grid-template-columns: 1fr minmax(300px, 0.8fr) auto; align-items: center; gap: 70px; padding: 68px max(24px, calc((100vw - 1380px) / 2)); background: var(--amber); color: #15170f; }
 .open-source .eyebrow { color: #715a0f; }
 .open-source h2 { max-width: 580px; font-size: 30px; }
@@ -525,6 +539,8 @@ footer > span { justify-self: end; color: #717d75; font: 700 9px ui-monospace, S
   .community-paths > a, .community-paths > a + a { padding: 27px 0; border-left: 0; }
   .community-paths > a + a { border-top: 1px solid #3a463e; }
   .community-paths p { min-height: 0; }
+  .field-note { grid-template-columns: 1fr auto; gap: 36px; }
+  .field-note > p { grid-column: 1 / -1; grid-row: 2; }
   .open-source { grid-template-columns: 1fr auto; gap: 36px; }
   .open-source > p { grid-column: 1 / -1; grid-row: 2; }
 }
@@ -586,8 +602,9 @@ footer > span { justify-self: end; color: #717d75; font: 700 9px ui-monospace, S
   .community-paths { margin-top: 6px; }
   .next-links { grid-template-columns: 1fr; }
   .next-links a:nth-child(even) { padding-left: 0; border-left: 0; }
-  .open-source { grid-template-columns: 1fr; padding: 58px 16px; }
-  .open-source > p { grid-column: auto; grid-row: auto; }
+  .field-note, .open-source { grid-template-columns: 1fr; padding: 58px 16px; }
+  .field-note > p, .open-source > p { grid-column: auto; grid-row: auto; }
+  .field-note .button,
   .open-source .button { width: fit-content; }
   footer { grid-template-columns: 1fr; justify-items: start; padding-inline: 16px; }
   footer > span { justify-self: start; }

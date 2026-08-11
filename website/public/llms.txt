@@ -1,0 +1,29 @@
+# ScopePact
+
+> ScopePact is open trust infrastructure for bounded and accountable AI agent actions. ScopePact Guard is a pre-1.0 MCP authorization proxy that evaluates explicit authority before a tool call is forwarded and emits signed decision receipts.
+
+ScopePact keeps security decisions outside the language model. It evaluates actor identity, audience, actions, resources, expiry, call and spend budgets, replay state, and active policy at the effect boundary.
+
+Current status: pre-release research implementation. ScopePact Guard is an evaluation aid, not a production-approved sandbox or finished security standard. State migration, complete crash-point and load testing, platform release evidence, external review, and a production-like pilot remain open gates.
+
+## Primary resources
+
+- [Project overview](https://scopepact.org/): Product position, architecture, runnable Guard demo, evidence, runtime maturity, and project status.
+- [Field note: AI Agents Need Bounded Authority, Not More Trust](https://scopepact.org/articles/ai-agents-need-bounded-authority): Long-form introduction to the authority gap and ScopePact's design.
+- [Source repository](https://github.com/scopepact/scopepact): Protocol, implementation, SDKs, tests, examples, and documentation.
+- [Guard profile](https://github.com/scopepact/scopepact/blob/main/docs/GUARD.md): MCP proxy behavior, setup, state, policy, receipts, and operational limits.
+- [Threat model](https://github.com/scopepact/scopepact/blob/main/docs/THREAT_MODEL.md): Trust boundaries, threats, mitigations, and residual risks.
+- [Production roadmap](https://github.com/scopepact/scopepact/blob/main/ROADMAP.md): Evidence-gated work remaining before release claims.
+
+## Core concepts
+
+- Agents propose actions; deterministic enforcement code decides whether each effect is within a granted mandate.
+- Capabilities constrain actions, resources, audience, expiry, call count, spend, payees, and delegation depth.
+- ScopePact Guard durably reserves accepted effects before forwarding them and suppresses identical retries.
+- Conflicting reuse of an effect identifier fails closed.
+- Signed decision receipts bind the effect, policy, rule, decision, reason, timestamp, and signing identity.
+- ScopePact complements MCP, A2A, identity, and payment protocols; it does not replace them.
+
+## Licensing
+
+Protocol materials are Apache-2.0 licensed. The Rust security kernel and Community Guard are MPL-2.0 licensed.

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import re
 import unittest
+import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -14,6 +16,9 @@ class SiteParser(HTMLParser):
         super().__init__()
         self.ids: set[str] = set()
         self.references: list[str] = []
+        self.meta: dict[str, list[str]] = {}
+        self.structured_data: list[dict[str, object]] = []
+        self._structured_chunks: list[str] | None = None
 
     def handle_starttag(
         self, tag: str, attrs: list[tuple[str, str | None]]
@@ -21,9 +26,25 @@ class SiteParser(HTMLParser):
         values = dict(attrs)
         if identifier := values.get("id"):
             self.ids.add(identifier)
+        if tag == "meta" and (key := values.get("name") or values.get("property")):
+            if content := values.get("content"):
+                self.meta.setdefault(key, []).append(content)
+        if tag == "script" and values.get("type") == "application/ld+json":
+            self._structured_chunks = []
         for name in ("href", "src"):
             if reference := values.get(name):
                 self.references.append(reference)
+
+    def handle_data(self, data: str) -> None:
+        if self._structured_chunks is not None:
+            self._structured_chunks.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "script" and self._structured_chunks is not None:
+            self.structured_data.append(
+                json.loads("".join(self._structured_chunks))
+            )
+            self._structured_chunks = None
 
 
 class WebsiteTests(unittest.TestCase):
@@ -56,6 +77,8 @@ class WebsiteTests(unittest.TestCase):
         self.assertTrue((PUBLIC / "_headers").is_file())
         self.assertTrue((PUBLIC / "robots.txt").is_file())
         self.assertTrue((PUBLIC / "sitemap.xml").is_file())
+        self.assertTrue((PUBLIC / "feed.xml").is_file())
+        self.assertTrue((PUBLIC / "llms.txt").is_file())
 
     def test_community_entry_points_are_public(self) -> None:
         self.assertIn("community", self.parser.ids)
@@ -75,11 +98,83 @@ class WebsiteTests(unittest.TestCase):
 
     def test_discovery_metadata_and_release_boundary_are_explicit(self) -> None:
         contents = (PUBLIC / "index.html").read_text(encoding="utf-8")
-        self.assertIn('type="application/ld+json"', contents)
+        self.assertEqual(len(self.parser.structured_data), 1)
+        graph = self.parser.structured_data[0]["@graph"]
+        types = {
+            entry_type
+            for entry in graph
+            for entry_type in (
+                entry["@type"]
+                if isinstance(entry["@type"], list)
+                else [entry["@type"]]
+            )
+        }
+        self.assertTrue(
+            {"Organization", "WebSite", "WebPage", "SoftwareApplication"}
+            <= types
+        )
+        self.assertEqual(
+            self.parser.meta["robots"],
+            [
+                "index, follow, max-image-preview:large, max-snippet:-1, "
+                "max-video-preview:-1"
+            ],
+        )
         self.assertIn('"codeRepository": "https://github.com/scopepact/scopepact"', contents)
         self.assertIn("MCP authorization proxy", contents)
         self.assertIn("Locally verified, not production approved.", contents)
         self.assertIn("State migration", contents)
+        self.assertIn(
+            "/articles/ai-agents-need-bounded-authority",
+            self.parser.references,
+        )
+
+    def test_sitemap_feed_and_machine_readable_brief_are_valid(self) -> None:
+        sitemap_root = ET.parse(PUBLIC / "sitemap.xml").getroot()
+        sitemap_namespace = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+        sitemap_urls = {
+            element.text
+            for element in sitemap_root.findall("s:url/s:loc", sitemap_namespace)
+        }
+        article_url = (
+            "https://scopepact.org/articles/ai-agents-need-bounded-authority"
+        )
+        self.assertEqual(
+            sitemap_urls,
+            {"https://scopepact.org/", article_url},
+        )
+
+        feed_root = ET.parse(PUBLIC / "feed.xml").getroot()
+        channel = feed_root.find("channel")
+        self.assertIsNotNone(channel)
+        assert channel is not None
+        self.assertEqual(channel.findtext("title"), "ScopePact Field Notes")
+        self.assertEqual(channel.findtext("item/link"), article_url)
+
+        brief = (PUBLIC / "llms.txt").read_text(encoding="utf-8")
+        self.assertIn("# ScopePact", brief)
+        self.assertIn("pre-release research implementation", brief)
+        self.assertIn(article_url, brief)
+        self.assertIn("https://github.com/scopepact/scopepact", brief)
+
+        robots = (PUBLIC / "robots.txt").read_text(encoding="utf-8")
+        self.assertIn("User-agent: *\nAllow: /", robots)
+        self.assertIn("Sitemap: https://scopepact.org/sitemap.xml", robots)
+
+    def test_indexnow_verification_key_and_submission_script_match(self) -> None:
+        key_files = [
+            path
+            for path in PUBLIC.glob("*.txt")
+            if re.fullmatch(r"[0-9a-f]{32}", path.stem)
+        ]
+        self.assertEqual(len(key_files), 1)
+        key = key_files[0].stem
+        self.assertEqual(key_files[0].read_text(encoding="utf-8").strip(), key)
+        script = (Path(__file__).parent / "scripts" / "submit-indexnow.mjs").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(f'const key = "{key}";', script)
+        self.assertIn("https://api.indexnow.org/indexnow", script)
 
     def test_guard_demo_covers_durable_and_failure_states(self) -> None:
         markup = (PUBLIC / "index.html").read_text(encoding="utf-8")
@@ -95,7 +190,16 @@ class WebsiteTests(unittest.TestCase):
         contents = article_path.read_text(encoding="utf-8")
         parser = SiteParser()
         parser.feed(contents)
-        self.assertIn('type="application/ld+json"', contents)
+        self.assertEqual(len(parser.structured_data), 1)
+        graph = parser.structured_data[0]["@graph"]
+        graph_types = {entry["@type"] for entry in graph}
+        self.assertIn("TechArticle", graph_types)
+        self.assertIn("BreadcrumbList", graph_types)
+        self.assertIn(
+            "index, follow, max-image-preview:large, max-snippet:-1, "
+            "max-video-preview:-1",
+            parser.meta["robots"],
+        )
         self.assertIn('property="og:type" content="article"', contents)
         self.assertIn(
             '<link rel="canonical" href="https://scopepact.org/articles/ai-agents-need-bounded-authority"',

@@ -11,8 +11,20 @@
       name="keywords"
       content="MCP security, AI agent authorization, agent tool security, signed decision receipts, capability security, Model Context Protocol"
     />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
     <meta name="theme-color" content="#0b0f0c" />
     <link rel="canonical" href="https://scopepact.org/" />
+    <link rel="alternate" hreflang="en" href="https://scopepact.org/" />
+    <link rel="alternate" hreflang="x-default" href="https://scopepact.org/" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="ScopePact Field Notes"
+      href="https://scopepact.org/feed.xml"
+    />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="ScopePact" />
     <meta property="og:title" content="ScopePact Guard - Authorization for MCP agent tools" />
@@ -42,24 +54,58 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": ["SoftwareSourceCode", "SoftwareApplication"],
-        "name": "ScopePact Guard",
-        "alternateName": "ScopePact",
-        "description": "An open pre-1.0 MCP authorization proxy with durable budgets, signed policies, duplicate suppression, and verifiable decision receipts for agent tool calls.",
-        "url": "https://scopepact.org/",
-        "codeRepository": "https://github.com/scopepact/scopepact",
-        "downloadUrl": "https://github.com/scopepact/scopepact",
-        "applicationCategory": "SecurityApplication",
-        "applicationSubCategory": "AI agent authorization",
-        "operatingSystem": "Linux, macOS, Windows",
-        "programmingLanguage": ["Rust", "Python", "JavaScript", "Dart", "Swift", "Go", "C++", "C#"],
-        "license": [
-          "https://www.apache.org/licenses/LICENSE-2.0",
-          "https://www.mozilla.org/en-US/MPL/2.0/"
-        ],
-        "isAccessibleForFree": true,
-        "softwareVersion": "0.1.0-pre-release",
-        "keywords": "MCP security, AI agent authorization, signed decision receipts, capability security"
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://scopepact.org/#organization",
+            "name": "ScopePact",
+            "url": "https://scopepact.org/",
+            "logo": "https://scopepact.org/favicon.svg",
+            "sameAs": ["https://github.com/scopepact/scopepact"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://scopepact.org/#website",
+            "url": "https://scopepact.org/",
+            "name": "ScopePact",
+            "description": "Open trust infrastructure for bounded and accountable AI agent actions.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://scopepact.org/#organization" }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://scopepact.org/#webpage",
+            "url": "https://scopepact.org/",
+            "name": "ScopePact Guard - MCP authorization and signed receipts",
+            "description": "ScopePact Guard is an open MCP authorization proxy with durable budgets, signed policies, duplicate suppression, and verifiable decision receipts for agent tool calls.",
+            "isPartOf": { "@id": "https://scopepact.org/#website" },
+            "about": { "@id": "https://scopepact.org/#software" },
+            "inLanguage": "en"
+          },
+          {
+            "@type": ["SoftwareSourceCode", "SoftwareApplication"],
+            "@id": "https://scopepact.org/#software",
+            "name": "ScopePact Guard",
+            "alternateName": "ScopePact",
+            "description": "An open pre-1.0 MCP authorization proxy with durable budgets, signed policies, duplicate suppression, and verifiable decision receipts for agent tool calls.",
+            "url": "https://scopepact.org/",
+            "codeRepository": "https://github.com/scopepact/scopepact",
+            "downloadUrl": "https://github.com/scopepact/scopepact",
+            "applicationCategory": "SecurityApplication",
+            "applicationSubCategory": "AI agent authorization",
+            "operatingSystem": "Linux, macOS, Windows",
+            "programmingLanguage": ["Rust", "Python", "JavaScript", "Dart", "Swift", "Go", "C++", "C#"],
+            "license": [
+              "https://www.apache.org/licenses/LICENSE-2.0",
+              "https://www.mozilla.org/en-US/MPL/2.0/"
+            ],
+            "isAccessibleForFree": true,
+            "softwareVersion": "0.1.0-pre-release",
+            "keywords": "MCP security, AI agent authorization, Model Context Protocol authorization, signed decision receipts, capability security",
+            "author": { "@id": "https://scopepact.org/#organization" },
+            "publisher": { "@id": "https://scopepact.org/#organization" }
+          }
+        ]
       }
     </script>
   </head>
@@ -467,6 +513,19 @@
         </div>
       </section>
 
+      <section class="field-note" aria-labelledby="field-note-title">
+        <div>
+          <p class="eyebrow">SCOPEPACT FIELD NOTE</p>
+          <h2 id="field-note-title">AI Agents Need Bounded Authority, Not More Trust</h2>
+        </div>
+        <p>
+          A practical introduction to the authority gap in agentic systems, why prompts are
+          not security boundaries, and how ScopePact constrains MCP tool calls at the point
+          where intent becomes consequence.
+        </p>
+        <a class="button dark" href="/articles/ai-agents-need-bounded-authority">Read the field note</a>
+      </section>
+
       <section class="open-source" id="open-source" aria-labelledby="open-source-title">
         <div>
           <p class="eyebrow">OPEN BY DESIGN</p>
@@ -487,7 +546,8 @@
       </a>
       <p>
         <a href="https://github.com/scopepact/scopepact">GitHub</a> ·
-        <a href="/articles/ai-agents-need-bounded-authority">Article</a> ·
+        <a href="/articles/ai-agents-need-bounded-authority">Field note</a> ·
+        <a href="/feed.xml">RSS</a> ·
         <a href="https://github.com/scopepact/scopepact/discussions">Discussions</a> ·
         <a href="https://github.com/scopepact/scopepact/security">Security</a>
       </p>
