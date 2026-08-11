@@ -79,7 +79,8 @@ The repository currently contains:
 - Flutter, Swift, Go, C++, and C# alpha SDKs on the same transcript vector;
 - a 15-case cross-language conformance workbench;
 - an optional sender-constrained JWT federation profile;
-- the Protobuf v0 protocol schema and security documentation.
+- the Protobuf v0 protocol schema and security documentation;
+- the public website, discovery metadata, and publication-ready introduction article.
 
 ## Repository Layout
 
@@ -89,6 +90,7 @@ crates/
   core/        MPL-2.0 authority and interaction kernel
   guard/       MPL-2.0 local MCP enforcement runtime
 conformance/   Python/JavaScript implementations and browser workbench
+website/       Public site, SEO/GEO metadata, Cloudflare config, and Medium draft
 sdks/          Flutter and Swift portable envelope packages
 scripts/       Runnable demos and cross-language verification
 examples/      Guard policies and tool-call fixtures

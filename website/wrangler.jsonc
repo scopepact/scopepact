@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "scopepact",
+  "pages_build_output_dir": "./public",
+  "compatibility_date": "2026-08-10",
+  "send_metrics": false
+}

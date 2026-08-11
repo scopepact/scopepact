@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="ScopePact Guard is an open MCP authorization proxy with durable budgets, signed policies, duplicate suppression, and verifiable decision receipts for agent tool calls."
+    />
+    <meta
+      name="keywords"
+      content="MCP security, AI agent authorization, agent tool security, signed decision receipts, capability security, Model Context Protocol"
+    />
+    <meta name="theme-color" content="#0b0f0c" />
+    <link rel="canonical" href="https://scopepact.org/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ScopePact" />
+    <meta property="og:title" content="ScopePact Guard - Authorization for MCP agent tools" />
+    <meta
+      property="og:description"
+      content="Durable MCP tool authorization, bounded budgets, duplicate suppression, and signed decision receipts in an open pre-1.0 implementation."
+    />
+    <meta
+      property="og:image"
+      content="https://scopepact.org/assets/scopepact-workbench.png"
+    />
+    <meta property="og:url" content="https://scopepact.org/" />
+    <meta property="og:image:alt" content="ScopePact conformance workbench showing protocol checks and signed evidence" />
+    <meta property="og:image:width" content="2038" />
+    <meta property="og:image:height" content="1212" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ScopePact Guard - Authorization for MCP agent tools" />
+    <meta
+      name="twitter:description"
+      content="Open, durable authorization and signed decision receipts for MCP agent tool calls."
+    />
+    <meta name="twitter:image" content="https://scopepact.org/assets/scopepact-workbench.png" />
+    <title>ScopePact Guard - MCP authorization and signed receipts</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": ["SoftwareSourceCode", "SoftwareApplication"],
+        "name": "ScopePact Guard",
+        "alternateName": "ScopePact",
+        "description": "An open pre-1.0 MCP authorization proxy with durable budgets, signed policies, duplicate suppression, and verifiable decision receipts for agent tool calls.",
+        "url": "https://scopepact.org/",
+        "codeRepository": "https://github.com/scopepact/scopepact",
+        "downloadUrl": "https://github.com/scopepact/scopepact",
+        "applicationCategory": "SecurityApplication",
+        "applicationSubCategory": "AI agent authorization",
+        "operatingSystem": "Linux, macOS, Windows",
+        "programmingLanguage": ["Rust", "Python", "JavaScript", "Dart", "Swift", "Go", "C++", "C#"],
+        "license": [
+          "https://www.apache.org/licenses/LICENSE-2.0",
+          "https://www.mozilla.org/en-US/MPL/2.0/"
+        ],
+        "isAccessibleForFree": true,
+        "softwareVersion": "0.1.0-pre-release",
+        "keywords": "MCP security, AI agent authorization, signed decision receipts, capability security"
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="ScopePact home">
+        <span class="brand-mark" aria-hidden="true">SP</span>
+        <span class="brand-name">ScopePact</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#why">Why</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#guard">Guard</a>
+        <a href="#evidence">Evidence</a>
+        <a href="#sdks">SDKs</a>
+        <a href="#community">Community</a>
+      </nav>
+      <a class="header-action" href="#start">Run locally</a>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-image" aria-hidden="true"></div>
+        <div class="hero-scrim" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="eyebrow">OPEN TRUST INFRASTRUCTURE</p>
+          <h1 id="hero-title">ScopePact</h1>
+          <p class="hero-summary">
+            A common trust layer for bounded, accountable agent action across runtimes,
+            protocols, and organizations.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#start">Try ScopePact Guard</a>
+            <a class="button secondary" href="#why">Why ScopePact</a>
+          </div>
+          <div class="hero-meta" aria-label="Project status">
+            <span><i class="live-dot" aria-hidden="true"></i>Pre-1.0 hardening</span>
+            <span>Open protocol</span>
+            <span>8 runtimes under test</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="positioning" aria-label="Product position">
+        <p>Agents propose. ScopePact decides. Tools execute only inside granted scope.</p>
+        <span>SIGNED DECISION RECEIPT</span>
+      </section>
+
+      <section class="why" id="why" aria-labelledby="why-title">
+        <div class="why-intro">
+          <div>
+            <p class="eyebrow">OUR FOUNDING CONVICTION</p>
+            <h2 id="why-title">Give the agentic world a common language for authority.</h2>
+          </div>
+          <p>
+            As agents move from answering questions to operating tools, services, devices,
+            and money, they cross boundaries built for human accounts and isolated apps.
+            Their authority cannot remain implicit in a prompt or trapped inside one vendor's
+            control plane. ScopePact is our attempt to make delegated authority open,
+            portable, and independently verifiable.
+          </p>
+        </div>
+
+        <div class="why-ambition">
+          <span>THE AMBITION</span>
+          <p>
+            Any agent. Any runtime. Any protocol. One accountable answer before consequence:
+            is this action within its mandate?
+          </p>
+        </div>
+
+        <div class="why-problems-heading">
+          <p class="eyebrow">PROBLEMS WE INTEND TO SOLVE</p>
+          <span>From local tool calls to cross-organization delegation and payment.</span>
+        </div>
+        <div class="why-sequence" aria-label="Problems ScopePact intends to solve">
+          <article>
+            <span>01 · AMBIENT AUTHORITY</span>
+            <h3>Permissions are hidden in prompts and application state.</h3>
+            <p>
+              Make identity, scope, resources, budgets, expiry, and delegation explicit
+              inputs to enforcement instead of assumptions made by a model.
+            </p>
+          </article>
+          <article>
+            <span>02 · FRAGMENTED TRUST</span>
+            <h3>Authority stops when an agent crosses a system boundary.</h3>
+            <p>
+              Let independent runtimes and organizations exchange a narrow mandate without
+              sharing process state or adopting the same application stack.
+            </p>
+          </article>
+          <article>
+            <span>03 · UNACCOUNTABLE EFFECTS</span>
+            <h3>A completed action rarely carries proof of why it was allowed.</h3>
+            <p>
+              Produce portable decision receipts so operators can verify the actor, mandate,
+              policy, and exact effect without exposing private model reasoning.
+            </p>
+          </article>
+          <article>
+            <span>04 · SECURITY SILOS</span>
+            <h3>Every ecosystem should not need to reinvent the same guardrail.</h3>
+            <p>
+              Create an open enforcement contract that can sit beneath MCP, A2A, payment
+              flows, and future protocols instead of replacing their application semantics.
+            </p>
+          </article>
+        </div>
+
+        <div class="why-principle">
+          <p>
+            ScopePact exists so more capable agents do not require more ambient trust. Their
+            authority should become narrower, more portable, and more accountable as their
+            reach grows.
+          </p>
+          <span>DESIGN PRINCIPLE</span>
+        </div>
+      </section>
+
+      <section class="section architecture" id="architecture" aria-labelledby="architecture-title">
+        <div class="section-heading">
+          <p class="eyebrow">ONE ENFORCEMENT LAYER</p>
+          <h2 id="architecture-title">Keep the protocols. Unify the decision.</h2>
+          <p>
+            ScopePact sits at the effect boundary. It does not replace MCP, A2A, payment
+            protocols, or transports; it gives them the same fail-closed authority model.
+          </p>
+        </div>
+
+        <div class="protocol-flow" aria-label="Protocol adapter flow">
+          <div class="protocol-sources">
+            <span>MCP tools</span>
+            <span>A2A tasks</span>
+            <span>Payment intent</span>
+          </div>
+          <div class="flow-line" aria-hidden="true"><span></span></div>
+          <div class="kernel-node">
+            <small>SCOPEPACT KERNEL</small>
+            <strong>Identity · scope · limits · replay · policy</strong>
+          </div>
+          <div class="flow-line" aria-hidden="true"><span></span></div>
+          <div class="decision-node">
+            <span class="allow">ALLOW</span>
+            <span class="block">BLOCK</span>
+            <small>+ signed receipt</small>
+          </div>
+        </div>
+
+        <div class="invariant-list" aria-label="Core security properties">
+          <article>
+            <span>01</span>
+            <h3>Identity-bound</h3>
+            <p>Every accepted frame binds sender, audience, session, policy, and payload.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Capability-scoped</h3>
+            <p>Actions, resources, payees, time, calls, and spend remain explicitly bounded.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Effect-safe</h3>
+            <p>Duplicates are suppressed and conflicting effect identifiers fail closed.</p>
+          </article>
+          <article>
+            <span>04</span>
+            <h3>Independently verifiable</h3>
+            <p>Domain-separated transcripts produce receipts another runtime can verify.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="product-view" aria-labelledby="workbench-title">
+        <div class="section-heading compact">
+          <p class="eyebrow">INSPECT THE EVIDENCE</p>
+          <h2 id="workbench-title">A protocol decision should explain itself.</h2>
+          <p>
+            The conformance workbench pairs plain-language impact with implementation-level
+            envelopes, payloads, checks, and raw evidence.
+          </p>
+        </div>
+        <figure>
+          <img
+            src="assets/scopepact-workbench.png"
+            alt="ScopePact conformance workbench showing protocol scenarios, verification checks, and signed envelope evidence"
+            width="2038"
+            height="1212"
+          />
+          <figcaption>
+            Real Python-to-JavaScript conformance evidence. Expected rejection is a passing case.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="section guard" id="guard" aria-labelledby="guard-title">
+        <div class="guard-copy">
+          <p class="eyebrow">RUNNABLE TODAY</p>
+          <h2 id="guard-title">Put a policy gate in front of an MCP server.</h2>
+          <p>
+            ScopePact Guard intercepts <code>tools/call</code>, maps it into the authority
+            kernel, durably commits the decision, and forwards only effects covered by an
+            authenticated policy. It remains a pre-1.0 evaluation aid, not a sandbox or a
+            production certification.
+          </p>
+          <dl>
+            <div><dt>State</dt><dd>Restart-safe effects and budgets</dd></div>
+            <div><dt>Policy</dt><dd>Signed, audience-bound epochs</dd></div>
+            <div><dt>Signer</dt><dd>Encrypted keys and rotation history</dd></div>
+            <div><dt>Boundary</dt><dd>Strict MCP 2025-06-18 traffic</dd></div>
+          </dl>
+        </div>
+
+        <div class="decision-tool" aria-label="Interactive policy decision example">
+          <div class="tool-topbar">
+            <div>
+              <span class="tool-status-dot" aria-hidden="true"></span>
+              <strong>Decision preview</strong>
+            </div>
+            <span id="demo-state">STATE V3 · SEQUENCE 1</span>
+          </div>
+          <div class="segmented" role="group" aria-label="Select example call">
+            <button class="active" type="button" data-case="allowed" aria-pressed="true">Durable allow</button>
+            <button type="button" data-case="blocked" aria-pressed="false">Policy block</button>
+            <button type="button" data-case="duplicate" aria-pressed="false">After restart</button>
+            <button type="button" data-case="child" aria-pressed="false">Child failure</button>
+          </div>
+          <div class="request-line">
+            <span id="demo-method">CLIENT → GUARD</span>
+            <code id="demo-resource">/workspace/project/README.md</code>
+          </div>
+          <div class="decision-output allowed" id="decision-output">
+            <div>
+              <span>DECISION</span>
+              <strong id="demo-decision">ALLOWED</strong>
+            </div>
+            <p id="demo-reason">Effect reserved under capability grant.</p>
+          </div>
+          <dl class="receipt-fields">
+            <div><dt>Rule</dt><dd id="demo-rule">project-file-writes</dd></div>
+            <div><dt>Effect</dt><dd id="demo-effect">105e4fee84141175…</dd></div>
+            <div><dt>Receipt</dt><dd id="demo-receipt">Ed25519 verified</dd></div>
+            <div><dt>Commit</dt><dd id="demo-commit">Synced before forward</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="evidence" id="evidence" aria-labelledby="evidence-title">
+        <div class="section-heading compact light">
+          <p class="eyebrow">EXECUTABLE EVIDENCE</p>
+          <h2 id="evidence-title">Security claims backed by rejection tests.</h2>
+        </div>
+        <div class="metrics">
+          <div><strong>15</strong><span>cross-language wire scenarios</span></div>
+          <div><strong>83</strong><span>Rust kernel and Guard tests</span></div>
+          <div><strong>8</strong><span>runtimes on one transcript vector</span></div>
+          <div><strong>4</strong><span>coverage-guided fuzz targets</span></div>
+        </div>
+        <div class="coverage-line">
+          <span>Durable restart</span><span>Signed policy</span><span>Key rotation</span>
+          <span>Hostile child output</span><span>State recovery</span><span>Receipt integrity</span>
+        </div>
+        <div class="evidence-note">
+          <strong>Locally verified, not production approved.</strong>
+          <p>
+            State migration, filesystem-adapter canonicalization, release-platform CI,
+            external review, and a production pilot remain open gates.
+          </p>
+          <a href="https://github.com/scopepact/scopepact/blob/main/ROADMAP.md">Read the evidence-gated roadmap</a>
+        </div>
+      </section>
+
+      <section class="section runtimes" id="sdks" aria-labelledby="sdks-title">
+        <div class="section-heading">
+          <p class="eyebrow">RUNTIME SUPPORT</p>
+          <h2 id="sdks-title">One transcript. Honest capability levels.</h2>
+          <p>
+            Every listed runtime is checked against the same envelope bytes and Ed25519
+            signature. Enforcement remains concentrated in Rust while portable SDKs mature.
+          </p>
+        </div>
+        <div class="runtime-table" role="table" aria-label="ScopePact runtime support">
+          <div class="runtime-row runtime-header" role="row">
+            <span role="columnheader">Runtime</span>
+            <span role="columnheader">Current surface</span>
+            <span role="columnheader">Level</span>
+          </div>
+          <div class="runtime-row" role="row">
+            <strong role="cell">Rust</strong>
+            <span role="cell">Authority kernel, Guard, receipts, protocol types</span>
+            <em class="ready" role="cell">PRE-1.0 REFERENCE</em>
+          </div>
+          <div class="runtime-row" role="row">
+            <strong role="cell">Python</strong>
+            <span role="cell">Envelope signing, verification, negative vectors</span>
+            <em role="cell">CONFORMANCE</em>
+          </div>
+          <div class="runtime-row" role="row">
+            <strong role="cell">JavaScript</strong>
+            <span role="cell">Envelope verification, receipts, browser evidence</span>
+            <em role="cell">CONFORMANCE</em>
+          </div>
+          <div class="runtime-row" role="row">
+            <strong role="cell">Flutter</strong>
+            <span role="cell">Dart transcript and Ed25519 package across Flutter targets</span>
+            <em class="alpha" role="cell">ALPHA SDK</em>
+          </div>
+          <div class="runtime-row" role="row">
+            <strong role="cell">Swift</strong>
+            <span role="cell">CryptoKit transcript and Ed25519 package for Apple platforms</span>
+            <em class="alpha" role="cell">ALPHA SDK</em>
+          </div>
+          <div class="runtime-row" role="row">
+            <strong role="cell">Go</strong>
+            <span role="cell">Standard-library transcript and Ed25519 package</span>
+            <em class="alpha" role="cell">ALPHA SDK</em>
+          </div>
+          <div class="runtime-row" role="row">
+            <strong role="cell">C++</strong>
+            <span role="cell">C++20 transcript with OpenSSL Ed25519 verification</span>
+            <em class="alpha" role="cell">ALPHA SDK</em>
+          </div>
+          <div class="runtime-row" role="row">
+            <strong role="cell">C# / .NET</strong>
+            <span role="cell">.NET 8 transcript with NSec Ed25519 verification</span>
+            <em class="alpha" role="cell">ALPHA SDK</em>
+          </div>
+        </div>
+      </section>
+
+      <section class="community" id="community" aria-labelledby="community-title">
+        <div class="community-intro">
+          <div>
+            <p class="eyebrow">COMMUNITY FIRST</p>
+            <h2 id="community-title">Adoption is the win.</h2>
+          </div>
+          <div>
+            <p>
+              ScopePact is being built as shared trust infrastructure, not a toll on agent
+              communication. Its value grows when independent people can implement it,
+              challenge it, and carry its guarantees into systems we did not design.
+            </p>
+            <div class="community-actions">
+              <a class="button primary" href="https://github.com/scopepact/scopepact">View on GitHub</a>
+              <a class="button secondary" href="https://github.com/scopepact/scopepact/discussions">Join a discussion</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="community-commitment">
+          <span>PUBLIC PROJECT COMMITMENT</span>
+          <strong>
+            No protocol royalties. No pay-to-play governance. No private conformance
+            standard.
+          </strong>
+          <p>
+            Commercial use is welcome. Money does not buy protocol influence, roadmap
+            priority, a maintainer role, or a favorable verification result.
+          </p>
+        </div>
+
+        <div class="community-paths" aria-label="Ways to join the ScopePact community">
+          <a href="https://github.com/scopepact/scopepact/blob/main/CONTRIBUTING.md">
+            <span>01 · BUILD</span>
+            <h3>Implement a runtime, adapter, vector, or example.</h3>
+            <p>Start with a contribution path matched to your current experience.</p>
+            <b>Contribution guide <i aria-hidden="true">→</i></b>
+          </a>
+          <a href="https://github.com/scopepact/scopepact/discussions">
+            <span>02 · CHALLENGE</span>
+            <h3>Question an assumption before it becomes infrastructure.</h3>
+            <p>Bring protocol review, threat analysis, or an interoperability concern.</p>
+            <b>Open discussions <i aria-hidden="true">→</i></b>
+          </a>
+          <a href="https://github.com/scopepact/scopepact/issues/new/choose">
+            <span>03 · ADOPT</span>
+            <h3>Bring a real workflow and show us where the protocol fails.</h3>
+            <p>Share a reproducible integration gap or conformance scenario.</p>
+            <b>Choose an issue path <i aria-hidden="true">→</i></b>
+          </a>
+        </div>
+      </section>
+
+      <section class="section start" id="start" aria-labelledby="start-title">
+        <div class="section-heading compact">
+          <p class="eyebrow">RUN IT LOCALLY</p>
+          <h2 id="start-title">From source to a verified decision.</h2>
+          <p>From a source checkout. No account, hosted control plane, or network token required.</p>
+        </div>
+        <div class="command-block">
+          <div class="command-heading">
+            <span>QUICKSTART</span>
+            <button type="button" data-copy-target="quickstart-command">Copy</button>
+          </div>
+          <pre id="quickstart-command"><code>./verify-all.sh
+./scripts/run-guard-proxy.sh</code></pre>
+        </div>
+        <div class="next-links">
+          <a href="https://github.com/scopepact/scopepact/blob/main/docs/GUARD.md">Guard profile <span aria-hidden="true">→</span></a>
+          <a href="https://github.com/scopepact/scopepact/blob/main/docs/LIMITS.md">Resource limits <span aria-hidden="true">→</span></a>
+          <a href="https://github.com/scopepact/scopepact/blob/main/evidence/exercises/2026-08-11-local-guard-recovery.md">Recovery evidence <span aria-hidden="true">→</span></a>
+          <a href="https://github.com/scopepact/scopepact/blob/main/ROADMAP.md">Production roadmap <span aria-hidden="true">→</span></a>
+        </div>
+      </section>
+
+      <section class="open-source" id="open-source" aria-labelledby="open-source-title">
+        <div>
+          <p class="eyebrow">OPEN BY DESIGN</p>
+          <h2 id="open-source-title">Trust infrastructure should be inspectable.</h2>
+        </div>
+        <p>
+          Apache-2.0 protocol. MPL-2.0 community implementation. Public transcripts,
+          negative vectors, conformance evidence, governance, and security reporting.
+        </p>
+        <a class="button dark" href="https://github.com/scopepact/scopepact">Explore the source</a>
+      </section>
+    </main>
+
+    <footer>
+      <a class="brand footer-brand" href="#top">
+        <span class="brand-mark" aria-hidden="true">SP</span>
+        <span class="brand-name">ScopePact</span>
+      </a>
+      <p>
+        <a href="https://github.com/scopepact/scopepact">GitHub</a> ·
+        <a href="https://github.com/scopepact/scopepact/discussions">Discussions</a> ·
+        <a href="https://github.com/scopepact/scopepact/security">Security</a>
+      </p>
+      <span>Apache-2.0 spec · MPL-2.0 code · <span id="current-year"></span></span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "ScopePact",
+  "short_name": "ScopePact",
+  "description": "Open MCP authorization, durable budgets, and signed decision receipts for agent tool calls.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f0c",
+  "theme_color": "#0b0f0c",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -20,6 +20,8 @@ node --check conformance/javascript/mock_mcp_server.mjs
 node --check conformance/javascript/verify_guard_proxy.mjs
 node --check conformance/javascript/verify_guard_failure.mjs
 node --check conformance/web/app.js
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s website -p 'test_*.py'
+node --check website/public/app.js
 ./scripts/run-cross-language.sh
 ./scripts/run-guard.sh
 ./scripts/run-guard-proxy.sh
