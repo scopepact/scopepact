@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Why AI agents need bounded authority at the effect boundary, and how ScopePact applies least privilege, durable MCP authorization, and signed decision receipts."
+    />
+    <meta
+      name="keywords"
+      content="AI agent security, MCP security, Model Context Protocol authorization, least privilege, capability security, signed receipts, ScopePact"
+    />
+    <meta name="author" content="ScopePact" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="ScopePact" />
+    <meta property="og:title" content="AI Agents Need Bounded Authority, Not More Trust" />
+    <meta
+      property="og:description"
+      content="An open approach to least-privilege AI agent actions, MCP tool authorization, and verifiable decision receipts."
+    />
+    <meta property="og:url" content="https://scopepact.org/articles/ai-agents-need-bounded-authority.html" />
+    <meta property="og:image" content="https://scopepact.org/assets/scopepact-workbench.png" />
+    <meta property="og:image:width" content="2038" />
+    <meta property="og:image:height" content="1212" />
+    <meta
+      property="og:image:alt"
+      content="ScopePact conformance workbench showing protocol scenarios, verification checks, and signed evidence"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AI Agents Need Bounded Authority, Not More Trust" />
+    <meta
+      name="twitter:description"
+      content="Why agent security needs deterministic authority at the effect boundary."
+    />
+    <meta name="twitter:image" content="https://scopepact.org/assets/scopepact-workbench.png" />
+    <link rel="canonical" href="https://scopepact.org/articles/ai-agents-need-bounded-authority.html" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/article.css" />
+    <title>AI Agents Need Bounded Authority, Not More Trust - ScopePact</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "AI Agents Need Bounded Authority, Not More Trust",
+        "description": "Why AI agents need bounded authority at the effect boundary, and how ScopePact applies least privilege, durable MCP authorization, and signed decision receipts.",
+        "datePublished": "2026-08-11",
+        "dateModified": "2026-08-11",
+        "author": {
+          "@type": "Organization",
+          "name": "ScopePact",
+          "url": "https://scopepact.org/"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "ScopePact",
+          "url": "https://scopepact.org/"
+        },
+        "image": "https://scopepact.org/assets/scopepact-workbench.png",
+        "mainEntityOfPage": "https://scopepact.org/articles/ai-agents-need-bounded-authority.html",
+        "about": [
+          "AI agent security",
+          "Model Context Protocol authorization",
+          "least privilege",
+          "capability security"
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#article">Skip to article</a>
+    <header class="article-nav">
+      <a class="brand" href="/" aria-label="ScopePact home">
+        <span class="brand-mark" aria-hidden="true">SP</span>
+        <span>ScopePact</span>
+      </a>
+      <a class="source-link" href="https://github.com/scopepact/scopepact">View source</a>
+    </header>
+
+    <main id="article">
+      <article>
+        <header class="article-header">
+          <p class="kicker">SCOPEPACT FIELD NOTE &middot; AI AGENT SECURITY</p>
+          <h1>AI Agents Need Bounded Authority, Not More Trust</h1>
+          <p class="dek">
+            Introducing ScopePact, an open-source security layer for least-privilege AI
+            agent actions, MCP tool calls, and verifiable decision receipts.
+          </p>
+          <div class="byline">
+            <span>ScopePact</span>
+            <time datetime="2026-08-11">August 11, 2026</time>
+            <span>12 min read</span>
+          </div>
+        </header>
+
+        <figure class="hero-figure">
+          <img
+            src="/assets/scopepact-workbench.png"
+            alt="ScopePact conformance workbench showing protocol scenarios, verification checks, and signed evidence"
+            width="2038"
+            height="1212"
+          />
+          <figcaption>
+            The ScopePact conformance workbench makes accepted and rejected protocol
+            decisions inspectable across Python and JavaScript.
+          </figcaption>
+        </figure>
+
+        <div class="article-body">
+          <p class="lead">Imagine giving an AI agent permission to update one file in a project.</p>
+
+          <p>
+            The agent has a simple mandate: edit <code>/workspace/project/README.md</code>.
+            But the tool it can call runs with access to the whole machine. The boundary
+            exists in the instruction, not in the execution path. If the model
+            misunderstands the task, follows a malicious prompt, or calls the tool with the
+            wrong argument, a sentence in a prompt is all that stands between the intended
+            edit and a write to <code>/etc/hosts</code>.
+          </p>
+
+          <p><strong>This is the authority gap in agentic systems.</strong></p>
+
+          <p>
+            We are getting better at connecting agents to tools, services, other agents,
+            and payment systems. We are not yet equally good at expressing exactly what
+            each agent is allowed to do, enforcing that authority at the moment of
+            consequence, and proving why the action was allowed afterward.
+          </p>
+
+          <p>
+            <a href="https://scopepact.org/">ScopePact</a> is our attempt to close that gap
+            with an open, portable authorization and proof layer for consequential agent
+            actions.
+          </p>
+
+          <h2>The problem is not only what an agent can access</h2>
+
+          <p>
+            Traditional application security starts with users, roles, sessions, and API
+            credentials. Those controls still matter, but agents introduce a different
+            operational shape.
+          </p>
+
+          <p>
+            An agent can interpret an ambiguous goal, choose among tools, construct
+            arguments, retry after a failure, delegate work, and cross system boundaries in
+            seconds. A credential may tell a service which application is calling, but it
+            often does not answer the narrower questions that matter for an individual
+            effect:
+          </p>
+
+          <ul>
+            <li>Which agent is acting, and for whom?</li>
+            <li>Which exact action was delegated?</li>
+            <li>Which resources or counterparties are in scope?</li>
+            <li>How many calls or how much money may be spent?</li>
+            <li>When does the authority expire?</li>
+            <li>Can it be delegated again?</li>
+            <li>Has this effect already been executed?</li>
+            <li>Which policy produced the decision?</li>
+          </ul>
+
+          <p>
+            When these answers live only in a prompt, framework state, or vendor-specific
+            control plane, they are difficult to enforce consistently and even harder to
+            carry across organizational boundaries.
+          </p>
+
+          <blockquote>
+            <p>A prompt is useful context. It is not a security boundary.</p>
+          </blockquote>
+
+          <h2>What is ScopePact?</h2>
+
+          <p>
+            ScopePact is an open-source security kernel that keeps authority outside the
+            language model. It turns an agent's proposed action into a deterministic
+            authorization decision based on cryptographic identity, scoped capabilities,
+            resource constraints, time limits, call and spend budgets, replay protection,
+            and active policy.
+          </p>
+
+          <blockquote class="principle">
+            <p>Agents propose. ScopePact decides. Tools execute only inside granted scope.</p>
+          </blockquote>
+
+          <p>
+            ScopePact checks authority at the <strong>effect boundary</strong>, the point
+            where an agent's intent is about to become an external consequence. That
+            consequence might be a tool call, a task delegated to another agent, a file
+            modification, an API request, or a payment.
+          </p>
+
+          <p>
+            If the proposed effect is in scope, the action broker may execute it. If it is
+            outside the mandate, expired, revoked, duplicated, or inconsistent with policy,
+            it fails closed. Either way, the decision can produce a signed receipt that
+            another runtime can verify independently.
+          </p>
+
+          <pre><code>MCP tools -----+
+A2A tasks -----+-- adapter --&gt; ScopePact kernel --&gt; ALLOW / BLOCK + signed receipt
+Payment intent +                 identity | scope | limits | replay | policy</code></pre>
+
+          <p>
+            ScopePact does not ask the model to judge its own permissions. The enforcement
+            code does that.
+          </p>
+
+          <h2>Five design choices behind ScopePact</h2>
+
+          <h3>1. Authority stays outside the model</h3>
+
+          <p>
+            Models can help interpret intent and plan work, but the final security decision
+            should not depend on a model remembering a rule or resisting a cleverly worded
+            instruction.
+          </p>
+
+          <p>
+            ScopePact evaluates explicit data: the actor, audience, action, resource,
+            capability grant, expiry, budgets, effect identifier, and current policy epoch.
+            The decision is reproducible and testable without inspecting private
+            chain-of-thought or trusting another model call.
+          </p>
+
+          <p>This does not eliminate prompt injection or model error. It limits what those failures can turn into.</p>
+
+          <h3>2. Capabilities describe narrow mandates</h3>
+
+          <p>
+            A broad application credential answers, "Can this application reach the
+            service?" A ScopePact capability is intended to answer a narrower question:
+            "May this actor perform this action on this resource, for this audience, within
+            these limits, right now?"
+          </p>
+
+          <p>
+            A grant can constrain actions, resource prefixes, lifetime, call count, payment
+            currency, cumulative spend, allowed payees, and delegation depth. Delegated
+            authority can stay the same or become narrower; it cannot silently expand.
+          </p>
+
+          <h3>3. Enforcement happens before consequence</h3>
+
+          <p>
+            Audit logs are valuable, but a perfect record of an unauthorized action is still
+            a record of failure. ScopePact sits before the tool, service, wallet, or remote
+            peer. It evaluates the proposed effect before forwarding it. Policy becomes a
+            gate in the execution path rather than an instruction the agent is expected to
+            remember or a log reviewed after damage is done.
+          </p>
+
+          <h3>4. Retries and conflicts are security events</h3>
+
+          <p>
+            Agent workflows retry. Networks duplicate messages. Clients crash after an
+            action succeeds but before receiving the response. For a consequential effect,
+            "at least once" can mean twice.
+          </p>
+
+          <p>
+            ScopePact binds each proposed effect to an identifier and digest. An identical
+            retry is recognized as a duplicate and is not authorized for execution a second
+            time. Reusing the same identifier for a different effect is a conflict and fails
+            closed.
+          </p>
+
+          <p>
+            The current Guard commits effect reservations, call and spend budgets, policy
+            state, and receipt-chain position to a versioned hash-chained journal before
+            forwarding an allowed call, then restores those decisions after restart. State
+            migration, complete crash-point coverage, and an external rollback anchor remain
+            release blockers.
+          </p>
+
+          <h3>5. Decisions become portable evidence</h3>
+
+          <p>
+            An allow or block response is useful to the caller. A signed decision receipt is
+            useful to everyone who must understand the action later.
+          </p>
+
+          <p>
+            A ScopePact Guard receipt binds the effect, policy, rule, decision, reason,
+            timestamp, and signing identity into a domain-separated signature transcript.
+            It can be checked outside the runtime that made the decision.
+          </p>
+
+          <p>
+            Receipts are not a claim that the whole system is trustworthy. They make one
+            important decision independently inspectable.
+          </p>
+
+          <h2>How does ScopePact secure MCP tool calls?</h2>
+
+          <p>
+            The first concrete product is
+            <a href="https://github.com/scopepact/scopepact/blob/main/docs/GUARD.md">ScopePact Guard</a>,
+            a local policy enforcement proxy for Model Context Protocol servers using
+            standard input and output.
+          </p>
+
+          <p>
+            Guard sits between an MCP client and server. It forwards initialization and
+            other protocol traffic, intercepts <code>tools/call</code>, maps the proposed
+            call into ScopePact's authority model, and forwards only an effect covered by
+            the installed policy.
+          </p>
+
+          <p>
+            In the repository demo, a rule permits a tool to write beneath
+            <code>/workspace/project/</code>. A request for
+            <code>/workspace/project/README.md</code> is durably allowed. A request using
+            the same tool to write <code>/etc/hosts</code> is blocked before it reaches the
+            MCP server. Replaying the first effect after restart is recognized as a
+            duplicate, and hostile or oversized child-process output stops the proxy.
+          </p>
+
+          <p>
+            Decisions are signed, committed to a receipt chain, written to redaction-safe
+            audit and event streams, and verified independently in JavaScript. Guard accepts
+            signed, audience-bound policy bundles from locally pinned issuers, uses encrypted
+            local receipt keys, supports cross-signed key rotation, and enforces the declared
+            MCP 2025-06-18 message boundary with bounded inputs.
+          </p>
+
+          <h2>Does ScopePact replace MCP, A2A, or identity systems?</h2>
+
+          <p><strong>No.</strong></p>
+
+          <p>
+            MCP describes how AI applications connect to tools and contextual resources.
+            Agent-to-Agent protocols describe how agents discover and collaborate with one
+            another. Identity systems establish who a user, workload, or organization is.
+            Payment protocols move value.
+          </p>
+
+          <p>
+            Those are different jobs from deciding whether this actor may cause this exact
+            effect under this mandate. ScopePact is designed as an adapter-friendly layer
+            beneath those protocols. Identity evidence can inform local policy, but identity
+            alone does not create authority.
+          </p>
+
+          <h2>Why make the protocol open?</h2>
+
+          <p>
+            Authority infrastructure becomes less useful when its guarantees stop at a
+            vendor boundary. If two organizations cannot inspect the decision rules,
+            reproduce the signature transcript, or implement an independent verifier, they
+            are still relying on private trust.
+          </p>
+
+          <p>
+            ScopePact publishes its protocol schema, security invariants,
+            <a href="https://github.com/scopepact/scopepact/blob/main/docs/THREAT_MODEL.md">threat model</a>,
+            conformance scenarios, negative test vectors, governance process, and
+            implementation source. The protocol materials are Apache-2.0 licensed. The
+            reference security kernel and Community Guard use MPL-2.0.
+          </p>
+
+          <h2>What exists today?</h2>
+
+          <aside class="status-note">
+            <strong>Current status: pre-release research implementation.</strong>
+            <p>
+              ScopePact is not a finished security standard, and Guard is not a production
+              sandbox. The wire format and public APIs may still change.
+            </p>
+          </aside>
+
+          <p>The repository currently includes:</p>
+
+          <ul>
+            <li>A Rust authority kernel with signed envelopes, replay defense, capability attenuation, payment limits, revocation, and effect authorization.</li>
+            <li>Durable local MCP policy enforcement, authenticated policy bundles, encrypted and rotatable receipt keys, duplicate suppression, and signed receipts.</li>
+            <li>A versioned Protobuf schema and shared cross-language transcript vectors.</li>
+            <li>Negative conformance tests, schema validation, property tests, and four fuzz targets.</li>
+            <li>Runtime packages across Rust, Python, JavaScript, Flutter, Swift, Go, C++, and C#, each with an explicit maturity level.</li>
+            <li>Public threat-model, limits, operations, migration, sandbox, support, licensing, and governance documentation.</li>
+          </ul>
+
+          <p>
+            Important work remains. State migration, adapter-level filesystem
+            canonicalization, complete fault and load testing, platform CI and reproducible
+            signed release evidence, external review, a production-like pilot, A2A and
+            payment bindings, and independent full-kernel implementations remain on the
+            <a href="https://github.com/scopepact/scopepact/blob/main/ROADMAP.md">public roadmap</a>.
+          </p>
+
+          <h2>What would success look like?</h2>
+
+          <p>
+            Success is not every agent running the same framework. It is independent systems
+            sharing a precise answer to a consequential question:
+          </p>
+
+          <blockquote class="principle">
+            <p>Is this action within the authority that was actually granted?</p>
+          </blockquote>
+
+          <p>
+            We want an agent's reach to grow without its ambient authority growing with it.
+            We want narrow mandates to survive delegation. We want duplicate effects to be
+            safe. We want a tool call or payment to carry verifiable evidence of why it was
+            allowed. And we want those properties challenged through public implementations
+            and adversarial tests, not accepted because one vendor says they work.
+          </p>
+
+          <p>
+            ScopePact is early enough that the most valuable contribution may be
+            disagreement. Try the Guard. Read the threat model. Break a transcript
+            assumption. Bring an MCP workflow that the current policy cannot express.
+            Implement a verifier in another runtime. Show us where the abstraction fails.
+          </p>
+
+          <p class="closing">
+            The agentic world needs more than increasingly capable models. It needs a common
+            language for bounded authority. That is the idea behind ScopePact.
+          </p>
+        </div>
+      </article>
+
+      <section class="article-cta" aria-labelledby="article-cta-title">
+        <div>
+          <p class="kicker">OPEN TRUST INFRASTRUCTURE</p>
+          <h2 id="article-cta-title">Inspect the protocol. Challenge the boundary.</h2>
+        </div>
+        <div class="cta-links">
+          <a href="https://github.com/scopepact/scopepact">Source and documentation</a>
+          <a href="https://github.com/scopepact/scopepact/discussions">GitHub Discussions</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="article-footer">
+      <a href="/">ScopePact</a>
+      <span>Apache-2.0 protocol &middot; MPL-2.0 implementation</span>
+    </footer>
+  </body>
+</html>

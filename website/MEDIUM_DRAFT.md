@@ -163,6 +163,8 @@ Explore ScopePact at [scopepact.org](https://scopepact.org), browse the [source 
 
 ## Medium publishing notes
 
+**HTML preview/import source:** `public/articles/ai-agents-need-bounded-authority.html`
+
 **Subtitle:** Introducing ScopePact, an open-source security layer for least-privilege AI agent actions, MCP tool calls, and verifiable decision receipts.
 
 **Suggested topics:** AI Agents, Cybersecurity, Open Source, Model Context Protocol, Artificial Intelligence

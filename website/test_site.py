@@ -88,6 +88,32 @@ class WebsiteTests(unittest.TestCase):
         self.assertIn("RECOVERED · DUPLICATE", script)
         self.assertIn("CHILD TERMINATED · FAIL CLOSED", script)
 
+    def test_article_is_medium_ready_and_locally_complete(self) -> None:
+        article_path = PUBLIC / "articles" / "ai-agents-need-bounded-authority.html"
+        contents = article_path.read_text(encoding="utf-8")
+        parser = SiteParser()
+        parser.feed(contents)
+        self.assertIn('type="application/ld+json"', contents)
+        self.assertIn('property="og:type" content="article"', contents)
+        self.assertIn("AI Agents Need Bounded Authority, Not More Trust", contents)
+        self.assertIn("Current status: pre-release research implementation.", contents)
+        self.assertIn("/assets/scopepact-workbench.png", parser.references)
+        self.assertIn("/article.css", parser.references)
+        for reference in parser.references:
+            parsed = urlsplit(reference)
+            if parsed.scheme or parsed.netloc or not parsed.path:
+                continue
+            target = (PUBLIC / unquote(parsed.path).lstrip("/")).resolve()
+            self.assertTrue(target.is_relative_to(PUBLIC.resolve()), reference)
+            if target.is_dir():
+                target = target / "index.html"
+            self.assertTrue(target.is_file(), reference)
+        sitemap = (PUBLIC / "sitemap.xml").read_text(encoding="utf-8")
+        self.assertIn(
+            "https://scopepact.org/articles/ai-agents-need-bounded-authority.html",
+            sitemap,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -15,6 +15,12 @@ The product image is a real local conformance-workbench capture. Regenerate it
 after material UI changes at a `2038x1212` viewport and preserve the same asset
 path so the hero and product view remain stable.
 
+The long-form introduction is published from
+`public/articles/ai-agents-need-bounded-authority.html`. Its semantic HTML,
+article metadata, canonical URL, and image references are suitable for importing
+the deployed page into Medium. `MEDIUM_DRAFT.md` remains the editable source and
+publishing-note companion.
+
 ## Cloudflare Pages
 
 The checked-in Wrangler configuration deploys only `public/`:
